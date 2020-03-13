@@ -66,7 +66,7 @@ public class RSMSSettingManager implements IPWSocketClientListener {
         }
     }
 
-    private void release() {
+    public void release() {
         if (EmptyUtils.isNotEmpty(this.client)) {
             this.client.disable();
             this.client.release();
