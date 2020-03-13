@@ -86,7 +86,6 @@ public class RSMSSettingManager implements IPWSocketClientListener {
         }
     }
 
-
     @Override
     public void onSocketClientInitialized(PWSocketCilent client) {
         PWLogger.d("" + client + " initialized");
@@ -100,6 +99,9 @@ public class RSMSSettingManager implements IPWSocketClientListener {
     @Override
     public void onSocketClientConnected(PWSocketCilent client) {
         PWLogger.d("" + client + " connected");
+        RSMSSendBaseEntity entity = new RSMSSendBaseEntity();
+        entity.setCommandType(RSMSTools.RSMS_COMMAND_QUERY_PDA_MODULES);
+        client.writeAndFlush(entity);
         if(EmptyUtils.isNotEmpty(this.listener)){
             this.listener.get().onConnected();
         }
