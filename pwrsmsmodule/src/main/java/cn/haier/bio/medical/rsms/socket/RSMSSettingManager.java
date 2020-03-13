@@ -53,6 +53,7 @@ public class RSMSSettingManager implements IPWSocketClientListener {
         }
     }
 
+
     public void enable() {
         if (EmptyUtils.isNotEmpty(this.client)) {
             this.client.enable();
@@ -65,7 +66,6 @@ public class RSMSSettingManager implements IPWSocketClientListener {
         }
     }
 
-
     private void release() {
         if (EmptyUtils.isNotEmpty(this.client)) {
             this.client.disable();
@@ -73,6 +73,19 @@ public class RSMSSettingManager implements IPWSocketClientListener {
             this.client = null;
         }
     }
+
+    public void write(Object msg) {
+        if (EmptyUtils.isNotEmpty(this.client)) {
+            this.client.write(msg);
+        }
+    }
+
+    public void writeAndFlush(Object msg) {
+        if (EmptyUtils.isNotEmpty(this.client)) {
+            this.client.writeAndFlush(msg);
+        }
+    }
+
 
     @Override
     public void onSocketClientInitialized(PWSocketCilent client) {
