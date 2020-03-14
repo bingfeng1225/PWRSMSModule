@@ -23,6 +23,7 @@ public class RSMSBModelConfigEentity extends RSMSSendBaseEntity {
     private String apnPassword;//APN密码
 
     public RSMSBModelConfigEentity() {
+        super(RSMSTools.RSMS_COMMAND_CONFIG_A_MODEL);
     }
 
     public byte getModel() {

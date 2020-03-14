@@ -1,5 +1,6 @@
 package cn.haier.bio.medical.rsms.entity.recv;
 
+import cn.haier.bio.medical.rsms.tools.RSMSTools;
 import cn.qd.peiwen.pwtools.ByteUtils;
 
 public class RSMSQueryPDAModulesResponseEntity extends RSMSRecvBaseEntity {
@@ -7,6 +8,7 @@ public class RSMSQueryPDAModulesResponseEntity extends RSMSRecvBaseEntity {
     private byte configType;
 
     public RSMSQueryPDAModulesResponseEntity() {
+        super(RSMSTools.RSMS_RESPONSE_QUERY_PDA_MODULES);
     }
 
     public byte getDeviceType() {

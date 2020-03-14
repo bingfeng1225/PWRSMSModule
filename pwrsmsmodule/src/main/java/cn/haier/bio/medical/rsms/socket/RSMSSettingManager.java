@@ -8,7 +8,6 @@ import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryModulesResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryPDAModulesResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSRecvBaseEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
-import cn.haier.bio.medical.rsms.listener.IRSMSDTEListener;
 import cn.haier.bio.medical.rsms.tools.RSMSTools;
 import cn.qd.peiwen.pwlogger.PWLogger;
 import cn.qd.peiwen.pwsocket.client.PWSocketCilent;
@@ -263,13 +262,11 @@ public class RSMSSettingManager implements IPWSocketClientListener {
             switch (type) {
                 case RSMSTools.RSMS_RESPONSE_QUERY_MODULES: {
                     RSMSQueryModulesResponseEntity entity = RSMSTools.parseRSMSModulesEntity(data);
-                    entity.setCommandType(type);
                     out.add(entity);
                     break;
                 }
                 case RSMSTools.RSMS_RESPONSE_QUERY_PDA_MODULES: {
                     RSMSQueryPDAModulesResponseEntity entity = RSMSTools.parseRSMSPDAModulesEntity(data);
-                    entity.setCommandType(type);
                     out.add(entity);
                     break;
                 }

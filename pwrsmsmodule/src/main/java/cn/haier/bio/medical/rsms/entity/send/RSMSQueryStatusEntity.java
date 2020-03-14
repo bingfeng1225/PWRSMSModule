@@ -8,8 +8,10 @@ public class RSMSQueryStatusEntity extends RSMSSendBaseEntity {
     private String code;
     private byte[] mac;
     private byte[] mcu;
+    private boolean fromUser;
 
     public RSMSQueryStatusEntity() {
+        super(RSMSTools.RSMS_COMMAND_QUERY_STATUS);
     }
 
     public String getCode() {
@@ -34,6 +36,14 @@ public class RSMSQueryStatusEntity extends RSMSSendBaseEntity {
 
     public void setMcu(byte[] mcu) {
         this.mcu = mcu;
+    }
+
+    public boolean isFromUser() {
+        return fromUser;
+    }
+
+    public void setFromUser(boolean fromUser) {
+        this.fromUser = fromUser;
     }
 
     @Override

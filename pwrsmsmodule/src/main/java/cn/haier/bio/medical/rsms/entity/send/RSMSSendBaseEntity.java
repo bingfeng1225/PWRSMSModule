@@ -1,10 +1,14 @@
 package cn.haier.bio.medical.rsms.entity.send;
 
 public class RSMSSendBaseEntity {
-    private int commandType;
+    protected int commandType;
 
     public RSMSSendBaseEntity() {
 
+    }
+
+    public RSMSSendBaseEntity(int commandType) {
+        this.commandType = commandType;
     }
 
     public int getCommandType() {

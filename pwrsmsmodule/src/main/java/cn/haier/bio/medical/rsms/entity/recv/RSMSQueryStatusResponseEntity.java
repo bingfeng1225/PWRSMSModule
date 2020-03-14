@@ -1,5 +1,7 @@
 package cn.haier.bio.medical.rsms.entity.recv;
 
+import cn.haier.bio.medical.rsms.tools.RSMSTools;
+
 public class RSMSQueryStatusResponseEntity extends RSMSRecvBaseEntity {
     private byte model; //联网模式
     private byte status;//模块状态码
@@ -16,7 +18,7 @@ public class RSMSQueryStatusResponseEntity extends RSMSRecvBaseEntity {
     private byte second;//秒
 
     public RSMSQueryStatusResponseEntity() {
-
+        super(RSMSTools.RSMS_RESPONSE_QUERY_STATUS);
     }
 
     public byte getModel() {

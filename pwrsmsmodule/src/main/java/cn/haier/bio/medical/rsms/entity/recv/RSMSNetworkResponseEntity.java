@@ -1,5 +1,7 @@
 package cn.haier.bio.medical.rsms.entity.recv;
 
+import cn.haier.bio.medical.rsms.tools.RSMSTools;
+
 public class RSMSNetworkResponseEntity extends RSMSRecvBaseEntity {
     private byte model;//联网模式
 
@@ -15,7 +17,7 @@ public class RSMSNetworkResponseEntity extends RSMSRecvBaseEntity {
 
 
     public RSMSNetworkResponseEntity() {
-
+        super(RSMSTools.RSMS_RESPONSE_QUERY_NETWORK);
     }
 
     public byte getModel() {

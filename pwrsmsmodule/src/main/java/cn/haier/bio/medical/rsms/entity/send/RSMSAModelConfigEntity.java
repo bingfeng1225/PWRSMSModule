@@ -10,6 +10,7 @@ public class RSMSAModelConfigEntity extends RSMSSendBaseEntity {
     private String password;
 
     public RSMSAModelConfigEntity() {
+        super(RSMSTools.RSMS_COMMAND_CONFIG_A_MODEL);
     }
 
     public String getCode() {

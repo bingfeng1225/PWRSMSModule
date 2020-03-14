@@ -1,5 +1,8 @@
 package cn.haier.bio.medical.rsms.tools;
 
+import java.net.NetworkInterface;
+import java.util.Enumeration;
+
 import cn.haier.bio.medical.rsms.entity.recv.RSMSCommontResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSControlCommandEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSEnterConfigResponseEntity;
@@ -8,6 +11,7 @@ import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryModulesResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryPDAModulesResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryStatusResponseEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
+import cn.qd.peiwen.pwlogger.PWLogger;
 import cn.qd.peiwen.pwtools.EmptyUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -73,7 +77,8 @@ public class RSMSTools {
         return (check == l8sum);
     }
 
-    public static byte[] generateMac(byte[] mac) {
+    public static byte[] generateMacAddress() {
+        byte[] mac = getMachineHardwareAddress();
         if (EmptyUtils.isEmpty(mac) || mac.length != 6) {
             return DEFAULT_MAC;
         }
@@ -101,13 +106,55 @@ public class RSMSTools {
         return data;
     }
 
-    public static byte[] packageCommand(int type, RSMSSendBaseEntity entity) {
+    public static int indexOf(ByteBuf haystack, byte needle) {
+        //遍历haystack的每一个字节
+        for (int i = haystack.readerIndex(); i < haystack.writerIndex(); i++) {
+            if(needle == haystack.getByte(i)){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static int indexOf(ByteBuf haystack, byte[] needle) {
+        //遍历haystack的每一个字节
+        for (int i = haystack.readerIndex(); i < haystack.writerIndex(); i++) {
+            int needleIndex;
+            int haystackIndex = i;
+            /*haystack是否出现了delimiter，注意delimiter是一个ChannelBuffer（byte[]）
+            例如对于haystack="ABC\r\nDEF"，needle="\r\n"
+            那么当haystackIndex=3时，找到了“\r”，此时needleIndex=0
+            继续执行循环，haystackIndex++，needleIndex++，
+            找到了“\n”
+            至此，整个needle都匹配到了
+            程序然后执行到if (needleIndex == needle.capacity())，返回结果
+            */
+            for (needleIndex = 0; needleIndex < needle.length; needleIndex++) {
+                if (haystack.getByte(haystackIndex) != needle[needleIndex]) {
+                    break;
+                } else {
+                    haystackIndex++;
+                    if (haystackIndex == haystack.writerIndex() && needleIndex != needle.length - 1) {
+                        return -1;
+                    }
+                }
+            }
+
+            if (needleIndex == needle.length) {
+                // Found the needle from the haystack!
+                return i - haystack.readerIndex();
+            }
+        }
+        return -1;
+    }
+
+    public static byte[] packageCommand(RSMSSendBaseEntity entity) {
         ByteBuf buffer = Unpooled.buffer(8);
         buffer.writeBytes(HEADER, 0, HEADER.length); //帧头 2位
         byte[] buf = EmptyUtils.isEmpty(entity) ? new byte[0] : entity.packageSendMessage();
         //数据长度 = type(1) + cmd(1) + device(1) + entity(n) + check(1)
         buffer.writeShort(4 + buf.length); //长度 2位
-        buffer.writeShort(type);   //2位
+        buffer.writeShort(entity.getCommandType());   //2位
         buffer.writeByte(DEVICE);  //1位
 
         buffer.writeBytes(buf, 0, buf.length); //其他参数 N位
@@ -278,46 +325,19 @@ public class RSMSTools {
         return new String(data);
     }
 
-    public static int indexOf(ByteBuf haystack, byte needle) {
-        //遍历haystack的每一个字节
-        for (int i = haystack.readerIndex(); i < haystack.writerIndex(); i++) {
-            if(needle == haystack.getByte(i)){
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    public static int indexOf(ByteBuf haystack, byte[] needle) {
-        //遍历haystack的每一个字节
-        for (int i = haystack.readerIndex(); i < haystack.writerIndex(); i++) {
-            int needleIndex;
-            int haystackIndex = i;
-            /*haystack是否出现了delimiter，注意delimiter是一个ChannelBuffer（byte[]）
-            例如对于haystack="ABC\r\nDEF"，needle="\r\n"
-            那么当haystackIndex=3时，找到了“\r”，此时needleIndex=0
-            继续执行循环，haystackIndex++，needleIndex++，
-            找到了“\n”
-            至此，整个needle都匹配到了
-            程序然后执行到if (needleIndex == needle.capacity())，返回结果
-            */
-            for (needleIndex = 0; needleIndex < needle.length; needleIndex++) {
-                if (haystack.getByte(haystackIndex) != needle[needleIndex]) {
-                    break;
-                } else {
-                    haystackIndex++;
-                    if (haystackIndex == haystack.writerIndex() && needleIndex != needle.length - 1) {
-                        return -1;
-                    }
+    private static byte[] getMachineHardwareAddress() {
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface element = interfaces.nextElement();
+                if ("wlan0".equals(element.getName())) {
+                    return element.getHardwareAddress();
                 }
             }
-
-            if (needleIndex == needle.length) {
-                // Found the needle from the haystack!
-                return i - haystack.readerIndex();
-            }
+            return null;
+        } catch (Exception e) {
+            PWLogger.e(e);
+            return null;
         }
-        return -1;
     }
-
 }
