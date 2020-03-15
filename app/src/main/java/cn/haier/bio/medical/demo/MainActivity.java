@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import cn.haier.bio.medical.demo.control.ControlTools;
 import cn.haier.bio.medical.demo.control.recv.TemptureEntity;
+import cn.haier.bio.medical.demo.control.send.LTBCollectionEntity;
 import cn.haier.bio.medical.ltb.ILTBListener;
 import cn.haier.bio.medical.ltb.LTBManager;
 import cn.haier.bio.medical.ltb.entity.LTBDataEntity;
@@ -255,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
     @Override
     public void onRSMSControlReceived(RSMSControlCommandEntity entity) {
         switch (entity.getCommand()) {
-            case (short) ControlTools.RSMS_CONTROL_TEMPTURE_COMMAND:
+            case (short) 0x90FE:
                 TemptureEntity tempture = ControlTools.parseTemptureEntity(entity.getControl());
                 this.refreshTextView("收到控制温度指令，设置温度为：" + tempture.getTempture() + "\n");
                 break;

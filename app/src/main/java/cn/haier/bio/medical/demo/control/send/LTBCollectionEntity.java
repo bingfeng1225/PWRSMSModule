@@ -1,4 +1,4 @@
-package cn.haier.bio.medical.demo;
+package cn.haier.bio.medical.demo.control.send;
 
 import cn.haier.bio.medical.ltb.entity.LTBDataEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
