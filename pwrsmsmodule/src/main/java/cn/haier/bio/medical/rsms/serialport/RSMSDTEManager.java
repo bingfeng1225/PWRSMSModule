@@ -109,11 +109,15 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         this.insertTask(new RSMSSendBaseEntity(RSMSTools.RSMS_COMMAND_CONFIG_CLEAR_CACHE));
     }
 
-    public void queryStatus(String code) {
+    public void queryStatus() {
         RSMSQueryStatusEntity entity = new RSMSQueryStatusEntity();
         entity.setMac(this.mac);
         entity.setFromUser(true);
         entity.setMcu(RSMSTools.DEFAULT_MAC);
+        String code = null;
+        if (EmptyUtils.isNotEmpty(listener)) {
+            code = listener.get().findDeviceCode();
+        }
         entity.setCode(RSMSTools.generateCode(code));
         this.insertTask(entity);
     }

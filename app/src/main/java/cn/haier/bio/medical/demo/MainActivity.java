@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
     public void onClicked(View view) {
         switch (view.getId()) {
             case R.id.query_status:
-                RSMSDTEManager.getInstance().queryStatus("");
+                RSMSDTEManager.getInstance().queryStatus();
                 break;
             case R.id.query_network:
                 RSMSDTEManager.getInstance().queryNetwork();
