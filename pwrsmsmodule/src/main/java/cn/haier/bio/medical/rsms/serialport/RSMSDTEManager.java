@@ -93,6 +93,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     }
 
     public void release() {
+        this.disable();
         this.destroyHandler();
         this.destroySerialPort();
     }
