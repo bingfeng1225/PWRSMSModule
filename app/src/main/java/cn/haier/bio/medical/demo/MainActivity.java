@@ -217,6 +217,11 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
     }
 
     @Override
+    public void onControlReceived(RSMSControlCommandEntity entity) {
+
+    }
+
+    @Override
     public void onRSMSStatusReceived(RSMSQueryStatusResponseEntity status) {
         this.refreshTextView(status.toString());
     }

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.haier.bio.medical.rsms.entity.recv.RSMSCommontResponseEntity;
+import cn.haier.bio.medical.rsms.entity.recv.RSMSControlCommandEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSEnterConfigResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSNetworkResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryModulesResponseEntity;
@@ -433,6 +434,14 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         this.commandResponseReceived();
     }
 
+    @Override
+    public void onRSMSControlReceived(RSMSControlCommandEntity entity) throws IOException {
+        this.insertTask(new RSMSSendBaseEntity(RSMSTools.RSMS_CONTROL_RESPONSE,false));
+        if (EmptyUtils.isNotEmpty(this.listener)) {
+            this.listener.get().onControlReceived(entity);
+        }
+    }
+
     private class RSMSHandler extends Handler {
         public RSMSHandler(Looper looper) {
             super(looper);
@@ -469,7 +478,11 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                     taskRuning = true;
                     sendBase = tasks.get(0);
                     PWLogger.e("开始发送指令");
+                    RSMSSendBaseEntity entity = tasks.get(0);
                     serialPort.sendCommand(tasks.get(0));
+                    if(!entity.isNeedResponse()){
+                        sendEmptyMessageDelayed(RSMS_FINISH_TASK_MSG,100);
+                    }
                     break;
                 case RSMS_FINISH_TASK_MSG:
                     PWLogger.e("任务处理结束");
@@ -488,12 +501,12 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                     if (EmptyUtils.isNotEmpty(listener)) {
                         code = listener.get().findDeviceCode();
                     }
-                    RSMSQueryStatusEntity entity = new RSMSQueryStatusEntity();
-                    entity.setMac(mac);
-                    entity.setFromUser(false);
-                    entity.setMcu(RSMSTools.DEFAULT_MAC);
-                    entity.setCode(RSMSTools.generateCode(code));
-                    RSMSDTEManager.this.insertTask(entity);
+                    RSMSQueryStatusEntity status = new RSMSQueryStatusEntity();
+                    status.setMac(mac);
+                    status.setFromUser(false);
+                    status.setMcu(RSMSTools.DEFAULT_MAC);
+                    status.setCode(RSMSTools.generateCode(code));
+                    RSMSDTEManager.this.insertTask(status);
                     break;
                 case RSMS_QUERY_MODULES_MSG:
                     if (state != RSMS_STATE_STRTUP) {

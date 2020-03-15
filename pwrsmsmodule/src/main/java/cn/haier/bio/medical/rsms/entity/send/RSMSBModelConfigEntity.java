@@ -4,7 +4,7 @@ import cn.haier.bio.medical.rsms.tools.RSMSTools;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-public class RSMSBModelConfigEentity extends RSMSSendBaseEntity {
+public class RSMSBModelConfigEntity extends RSMSSendBaseEntity {
     private byte model; //联网模式 0x01->4G,0x02->WIFI,0x03->AUTO
 
     private String code; //冰箱编码BE
@@ -22,8 +22,8 @@ public class RSMSBModelConfigEentity extends RSMSSendBaseEntity {
     private String apnName;//APN用户名
     private String apnPassword;//APN密码
 
-    public RSMSBModelConfigEentity() {
-        super(RSMSTools.RSMS_COMMAND_CONFIG_A_MODEL);
+    public RSMSBModelConfigEntity() {
+        super(RSMSTools.RSMS_COMMAND_CONFIG_B_MODEL);
     }
 
     public byte getModel() {

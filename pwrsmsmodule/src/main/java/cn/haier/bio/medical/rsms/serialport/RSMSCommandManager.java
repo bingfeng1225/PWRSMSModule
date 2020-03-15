@@ -1,16 +1,11 @@
 package cn.haier.bio.medical.rsms.serialport;
 
-import android.os.Build;
-
-import java.lang.ref.WeakReference;
-
 import cn.haier.bio.medical.rsms.entity.send.RSMSEnterConfigModelEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSQueryStatusEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSAModelConfigEntity;
-import cn.haier.bio.medical.rsms.entity.send.RSMSBModelConfigEentity;
+import cn.haier.bio.medical.rsms.entity.send.RSMSBModelConfigEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSDTEModelConfigEntity;
-import cn.haier.bio.medical.rsms.listener.IRSMSDTEListener;
 import cn.haier.bio.medical.rsms.listener.IRSMSListener;
 import cn.haier.bio.medical.rsms.tools.RSMSTools;
 import cn.qd.peiwen.pwtools.EmptyUtils;
@@ -78,50 +73,38 @@ public class RSMSCommandManager {
     }
 
     public void queryNetwork() {
-        RSMSSendBaseEntity entity = new RSMSSendBaseEntity();
-        entity.setCommandType(RSMSTools.RSMS_COMMAND_QUERY_NETWORK);
         if (EmptyUtils.isNotEmpty(this.serialPort)) {
-            this.serialPort.sendCommand(entity);
+            this.serialPort.sendCommand(new RSMSSendBaseEntity(RSMSTools.RSMS_COMMAND_QUERY_NETWORK));
         }
     }
 
     public void queryModules() {
-        RSMSSendBaseEntity entity = new RSMSSendBaseEntity();
-        entity.setCommandType(RSMSTools.RSMS_COMMAND_QUERY_MODULES);
         if (EmptyUtils.isNotEmpty(this.serialPort)) {
-            this.serialPort.sendCommand(entity);
+            this.serialPort.sendCommand(new RSMSSendBaseEntity(RSMSTools.RSMS_COMMAND_QUERY_MODULES));
         }
     }
 
     public void queryPDAModules() {
-        RSMSSendBaseEntity entity = new RSMSSendBaseEntity();
-        entity.setCommandType(RSMSTools.RSMS_COMMAND_QUERY_PDA_MODULES);
         if (EmptyUtils.isNotEmpty(this.serialPort)) {
-            this.serialPort.sendCommand(entity);
+            this.serialPort.sendCommand(new RSMSSendBaseEntity(RSMSTools.RSMS_COMMAND_QUERY_PDA_MODULES));
         }
     }
 
     public void recovery() {
-        RSMSSendBaseEntity entity = new RSMSSendBaseEntity();
-        entity.setCommandType(RSMSTools.RSMS_COMMAND_CONFIG_RECOVERY);
         if (EmptyUtils.isNotEmpty(this.serialPort)) {
-            this.serialPort.sendCommand(entity);
+            this.serialPort.sendCommand(new RSMSSendBaseEntity(RSMSTools.RSMS_COMMAND_CONFIG_RECOVERY));
         }
     }
 
     public void clearCache() {
-        RSMSSendBaseEntity entity = new RSMSSendBaseEntity();
-        entity.setCommandType(RSMSTools.RSMS_COMMAND_CONFIG_CLEAR_CACHE);
         if (EmptyUtils.isNotEmpty(this.serialPort)) {
-            this.serialPort.sendCommand(entity);
+            this.serialPort.sendCommand(new RSMSSendBaseEntity(RSMSTools.RSMS_COMMAND_CONFIG_CLEAR_CACHE));
         }
     }
 
     public void quitConfigModel() {
-        RSMSSendBaseEntity entity = new RSMSSendBaseEntity();
-        entity.setCommandType(RSMSTools.RSMS_COMMAND_CONFIG_QUIT);
         if (EmptyUtils.isNotEmpty(this.serialPort)) {
-            this.serialPort.sendCommand(entity);
+            this.serialPort.sendCommand(new RSMSSendBaseEntity(RSMSTools.RSMS_COMMAND_CONFIG_QUIT));
         }
     }
 
@@ -143,7 +126,7 @@ public class RSMSCommandManager {
         }
     }
 
-    public void configBModel(RSMSBModelConfigEentity entity) {
+    public void configBModel(RSMSBModelConfigEntity entity) {
         if (EmptyUtils.isNotEmpty(this.serialPort)) {
             this.serialPort.sendCommand(entity);
         }
