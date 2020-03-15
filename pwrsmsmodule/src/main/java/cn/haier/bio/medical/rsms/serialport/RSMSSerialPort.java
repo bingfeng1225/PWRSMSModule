@@ -35,11 +35,10 @@ public class RSMSSerialPort implements PWSerialPortListener {
 
     }
 
-    public void init(String path, IRSMSListener listener) {
+    public void init(String path) {
         this.path = path;
         createBuffer();
         createHelper();
-        this.listener = new WeakReference<>(listener);
     }
 
     public void enable() {
@@ -65,6 +64,10 @@ public class RSMSSerialPort implements PWSerialPortListener {
         this.listener = null;
         this.destoryHelper();
         this.destoryBuffer();
+    }
+
+    public void changeListener(IRSMSListener listener) {
+        this.listener = new WeakReference<>(listener);
     }
 
     private boolean isInitialized() {
@@ -308,4 +311,5 @@ public class RSMSSerialPort implements PWSerialPortListener {
             }
         }
     }
+
 }

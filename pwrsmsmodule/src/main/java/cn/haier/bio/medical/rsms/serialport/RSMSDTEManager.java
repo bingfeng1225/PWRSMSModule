@@ -71,12 +71,11 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         this.mac = RSMSTools.generateMacAddress();
     }
 
-    public void init(String path, IRSMSDTEListener listener) {
+    public void init(String path) {
         if (!isInitialized()) {
             this.createHandler();
             this.createSerialPort(path);
             this.state = RSMS_STATE_IDLE;
-            this.listener = new WeakReference<>(listener);
         }
     }
 
@@ -98,6 +97,9 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         this.destroySerialPort();
     }
 
+    public void changeListener(IRSMSDTEListener listener) {
+        this.listener = new WeakReference<>(listener);
+    }
 
     public void recovery() {
         this.insertTask(new RSMSSendBaseEntity(RSMSTools.RSMS_COMMAND_CONFIG_RECOVERY));
@@ -194,7 +196,8 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     private void createSerialPort(String path) {
         if (EmptyUtils.isEmpty(this.serialPort)) {
             this.serialPort = new RSMSSerialPort();
-            this.serialPort.init(path, this);
+            this.serialPort.init(path);
+            this.serialPort.changeListener(this);
         }
     }
 
@@ -239,7 +242,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         }
     }
 
-    private void insertTask(RSMSSendBaseEntity entity){
+    private void insertTask(RSMSSendBaseEntity entity) {
         if (this.isInitialized()) {
             Message msg = Message.obtain();
             msg.what = RSMS_INSERT_TASK_MSG;
@@ -322,7 +325,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         this.status = status;
         //判断是用户查询还是自动查询，如果是用户查询需要调用接口反馈
         RSMSQueryStatusEntity entity = (RSMSQueryStatusEntity) sendBase;
-        if(entity.isFromUser() && EmptyUtils.isNotEmpty(this.listener)){
+        if (entity.isFromUser() && EmptyUtils.isNotEmpty(this.listener)) {
             this.listener.get().onStatusReceived(status);
         }
         //任务处理结束，重置taskRunning标志

@@ -38,8 +38,7 @@ public class RSMSSettingManager implements IPWSocketClientListener {
 
     }
 
-    public void init(IRSMSSettingListener listener) {
-        this.listener = new WeakReference<>(listener);
+    public void init() {
         if (EmptyUtils.isEmpty(this.client)) {
             this.client = new PWSocketCilent("RSMSSettingManager");
             this.client.setHost("192.168.7.1");
@@ -83,6 +82,10 @@ public class RSMSSettingManager implements IPWSocketClientListener {
         if (EmptyUtils.isNotEmpty(this.client)) {
             this.client.writeAndFlush(msg);
         }
+    }
+
+    public void changeListener(IRSMSSettingListener listener){
+        this.listener = new WeakReference<>(listener);
     }
 
     @Override

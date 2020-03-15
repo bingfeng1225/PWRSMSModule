@@ -2,12 +2,15 @@ package cn.haier.bio.medical.rsms.serialport;
 
 import android.os.Build;
 
+import java.lang.ref.WeakReference;
+
 import cn.haier.bio.medical.rsms.entity.send.RSMSEnterConfigModelEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSQueryStatusEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSAModelConfigEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSBModelConfigEentity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSDTEModelConfigEntity;
+import cn.haier.bio.medical.rsms.listener.IRSMSDTEListener;
 import cn.haier.bio.medical.rsms.listener.IRSMSListener;
 import cn.haier.bio.medical.rsms.tools.RSMSTools;
 import cn.qd.peiwen.pwtools.EmptyUtils;
@@ -31,10 +34,10 @@ public class RSMSCommandManager {
         this.mac = RSMSTools.generateMacAddress();
     }
 
-    public void init(String path, IRSMSListener listener) {
+    public void init(String path) {
         if (EmptyUtils.isEmpty(this.serialPort)) {
             this.serialPort = new RSMSSerialPort();
-            this.serialPort.init(path, listener);
+            this.serialPort.init(path);
         }
     }
 
@@ -55,6 +58,12 @@ public class RSMSCommandManager {
             this.serialPort.disable();
             this.serialPort.release();
             this.serialPort = null;
+        }
+    }
+
+    public void changeListener(IRSMSListener listener) {
+        if(EmptyUtils.isNotEmpty(this.serialPort)) {
+            this.serialPort.changeListener(listener);
         }
     }
 

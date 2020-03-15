@@ -55,7 +55,8 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
 //        RSMSCommandManager.getInstance().init(path,this);
 //        RSMSCommandManager.getInstance().enable();
 
-        RSMSDTEManager.getInstance().init(path,this);
+        RSMSDTEManager.getInstance().init(path);
+        RSMSDTEManager.getInstance().changeListener(this);
         RSMSDTEManager.getInstance().enable();
 
         LTBManager.getInstance().init(this);
