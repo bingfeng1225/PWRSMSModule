@@ -27,7 +27,6 @@ public class RSMSSerialPort implements PWSerialPortListener {
     private ByteBuf buffer;
     private PWSerialPortHelper helper;
 
-    private String path;
     private boolean enabled = false;
     private WeakReference<IRSMSListener> listener;
 
@@ -36,9 +35,8 @@ public class RSMSSerialPort implements PWSerialPortListener {
     }
 
     public void init(String path) {
-        this.path = path;
         createBuffer();
-        createHelper();
+        createHelper(path);
     }
 
     public void enable() {
@@ -93,7 +91,7 @@ public class RSMSSerialPort implements PWSerialPortListener {
         }
     }
 
-    private void createHelper() {
+    private void createHelper(String path) {
         if (EmptyUtils.isEmpty(this.helper)) {
             this.helper = new PWSerialPortHelper("RSMSSerialPort");
             this.helper.setPath(path);
