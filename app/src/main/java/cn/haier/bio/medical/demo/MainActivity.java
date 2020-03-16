@@ -30,6 +30,7 @@ import cn.haier.bio.medical.rsms.listener.IRSMSListener;
 import cn.haier.bio.medical.rsms.serialport.RSMSCommandManager;
 import cn.haier.bio.medical.rsms.serialport.RSMSDTEManager;
 import cn.qd.peiwen.pwtools.EmptyUtils;
+import cn.qd.peiwen.serialport.PWSerialPort;
 
 
 public class MainActivity extends AppCompatActivity implements IRSMSListener, IRSMSDTEListener, ILTBListener {
@@ -51,8 +52,8 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
             path = "/dev/ttyS1";
         }
 
-        this.code = this.getSharedPreferences("Demo",0)
-                .getString("DEV_CODE",null);
+        this.code = this.getSharedPreferences("Demo", 0)
+                .getString("DEV_CODE", null);
 //        RSMSCommandManager.getInstance().init(path,this);
 //        RSMSCommandManager.getInstance().enable();
 
@@ -60,7 +61,13 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
         RSMSDTEManager.getInstance().changeListener(this);
         RSMSDTEManager.getInstance().enable();
 
-        LTBManager.getInstance().init(this);
+        path = "/dev/ttyS2";
+        if (!"magton".equals(Build.MODEL)) {
+            path = "/dev/ttyS4";
+        }
+
+        LTBManager.getInstance().init(path);
+        LTBManager.getInstance().changeListener(this);
         LTBManager.getInstance().enable();
     }
 
@@ -329,8 +336,6 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
     }
 
 
-
-
     @Override
     public String findDeviceCode() {
         return this.code;
@@ -357,6 +362,24 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
     }
 
     @Override
+    public void onLTBSwitchWriteModel() {
+        if (!"magton".equals(Build.MODEL)) {
+            PWSerialPort.writeFile("/sys/class/gpio/gpio24/value", "0");
+        } else {
+            PWSerialPort.writeFile("/sys/class/misc/sunxi-acc/acc/sochip_acc", "1");
+        }
+    }
+
+    @Override
+    public void onLTBSwitchReadModel() {
+        if (!"magton".equals(Build.MODEL)) {
+            PWSerialPort.writeFile("/sys/class/gpio/gpio24/value", "1");
+        } else {
+            PWSerialPort.writeFile("/sys/class/misc/sunxi-acc/acc/sochip_acc", "0");
+        }
+    }
+
+    @Override
     public void onPDAConfigEntered() {
         runOnUiThread(new Runnable() {
             @Override
@@ -378,7 +401,7 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
 
     @Override
     public void onDETMacChanged(String mac) {
-        if(EmptyUtils.isNotEmpty(this.qrCodeDialog)){
+        if (EmptyUtils.isNotEmpty(this.qrCodeDialog)) {
             this.qrCodeDialog.changeMac(mac);
         }
     }
@@ -386,9 +409,9 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
     @Override
     public void onDeviceCodeChanged(String code) {
         this.code = code;
-        SharedPreferences sp = this.getSharedPreferences("Demo",0);
+        SharedPreferences sp = this.getSharedPreferences("Demo", 0);
         SharedPreferences.Editor editor = sp.edit();
-        editor.putString("DEV_CODE",this.code);
+        editor.putString("DEV_CODE", this.code);
         editor.commit();
     }
 
@@ -407,17 +430,17 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
         this.refreshTextView(modules.toString());
     }
 
-    private void showQRCodeDialog(){
-        if(EmptyUtils.isEmpty(this.qrCodeDialog)){
+    private void showQRCodeDialog() {
+        if (EmptyUtils.isEmpty(this.qrCodeDialog)) {
             this.qrCodeDialog = new QRCodeDialog(this);
         }
-        if(!this.qrCodeDialog.isShowing()) {
+        if (!this.qrCodeDialog.isShowing()) {
             this.qrCodeDialog.show();
         }
     }
 
-    private void dismissQRCodeDialog(){
-        if(EmptyUtils.isNotEmpty(this.qrCodeDialog)) {
+    private void dismissQRCodeDialog() {
+        if (EmptyUtils.isNotEmpty(this.qrCodeDialog)) {
             this.qrCodeDialog.dismiss();
             this.qrCodeDialog = null;
         }
@@ -440,8 +463,8 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
     }
 
     @Override
-    public void onLTBSystemChanged(int type) {
-
+    public boolean onLTBSystemChanged(int type) {
+        return false;
     }
 
     @Override
@@ -457,8 +480,8 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
         RSMSDTEManager manager = RSMSDTEManager.getInstance();
         boolean ready = manager.isReady();
         boolean overtime = manager.isArrivalTime();
-        boolean changed =  (!entity.isStatusEquals(temp) || !entity.isAlarmsEquals(temp));
-        if(ready && (overtime || changed)){
+        boolean changed = (!entity.isStatusEquals(temp) || !entity.isAlarmsEquals(temp));
+        if (ready && (overtime || changed)) {
             LTBCollectionEntity collection = new LTBCollectionEntity();
             collection.setEntity(entity);
             manager.collectionDeviceData(collection);

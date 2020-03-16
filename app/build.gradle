@@ -66,7 +66,8 @@ dependencies {
 
     implementation 'com.github.bingfeng1225:PWLog4j:1.0.0'
     implementation 'com.github.bingfeng1225:PWTools:1.1.2'
-    implementation 'com.github.bingfeng1225:PWLTBModule:1.0.0'
+    implementation 'com.github.bingfeng1225:PWLTBModule:1.0.3'
+    implementation 'com.github.bingfeng1225:PWSerialPort:1.1.4'
     implementation 'com.github.bingfeng1225:PWNetworkInterface:1.0.3'
 
     implementation 'info.hoang8f:android-segmented:1.0.6'
