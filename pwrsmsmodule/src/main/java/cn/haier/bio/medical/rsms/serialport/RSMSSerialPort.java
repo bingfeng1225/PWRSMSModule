@@ -117,7 +117,7 @@ public class RSMSSerialPort implements PWSerialPortListener {
             this.listener.get().onMessageSended(log);
         }
         if (this.isInitialized() && this.enabled) {
-            this.helper.writeAndFlush(data);
+            this.helper.write(data);
         }
     }
 
