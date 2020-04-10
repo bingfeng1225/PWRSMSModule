@@ -24,8 +24,13 @@ import cn.haier.bio.medical.rsms.entity.recv.server.RSMSCommandEntity;
 import cn.haier.bio.medical.rsms.RSMSDTEManager;
 import cn.haier.bio.medical.rsms.entity.send.client.RSMSCommandResponseEntity;
 import cn.haier.bio.medical.rsms.entity.send.client.RSMSOperationCollectionEntity;
+import cn.haier.bio.medical.rsms.tools.RSMSTools;
+import cn.qd.peiwen.pwlogger.PWLogger;
+import cn.qd.peiwen.pwtools.ByteUtils;
 import cn.qd.peiwen.pwtools.EmptyUtils;
 import cn.qd.peiwen.serialport.PWSerialPort;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 
 public class MainActivity extends AppCompatActivity implements IRSMSDTEListener, ILTBListener {
@@ -64,6 +69,25 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
         LTBManager.getInstance().init(path);
         LTBManager.getInstance().changeListener(this);
         LTBManager.getInstance().enable();
+
+        ByteBuf buf = Unpooled.buffer();
+
+
+        int xx = RSMSTools.RSMS_TRANSMISSION_COMMAND;
+        buf.writeShortLE(xx);
+
+        buf.markReaderIndex();
+
+        byte[] data = new byte[buf.readableBytes()];
+        buf.readBytes(data);
+
+        PWLogger.e("data = " + ByteUtils.bytes2HexString(data));
+
+        buf.resetReaderIndex();
+
+        PWLogger.e("xx = " + xx);
+        PWLogger.e("xxx = " + (short)xx);
+        PWLogger.e("xxxx = " + buf.readShortLE());
     }
 
     private void refreshTextView(final String text) {

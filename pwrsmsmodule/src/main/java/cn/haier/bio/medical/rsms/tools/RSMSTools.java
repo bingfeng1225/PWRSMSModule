@@ -65,8 +65,8 @@ public class RSMSTools {
     public static final int RSMS_COMMAND_COLLECTION_DATA = 0x1501;
     public static final int RSMS_RESPONSE_COLLECTION_DATA = 0x1601;
 
-    public static final int RSMS_TRANSMISSION_COMMAND = 0xC001;
-    public static final int RSMS_TRANSMISSION_RESPONSE = 0xC101;
+    public static final int RSMS_TRANSMISSION_COMMAND = (short)0xC001;
+    public static final int RSMS_TRANSMISSION_RESPONSE = (short)0xC101;
 
     public static boolean checkFrame(byte[] data) {
         byte check = data[data.length - 3];
