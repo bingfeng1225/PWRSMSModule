@@ -9,31 +9,26 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import cn.haier.bio.medical.demo.control.ControlTools;
-import cn.haier.bio.medical.demo.control.recv.TemptureEntity;
+import cn.haier.bio.medical.demo.control.CommandTools;
+import cn.haier.bio.medical.demo.control.recv.TemptureCommandEntity;
 import cn.haier.bio.medical.demo.control.send.LTBCollectionEntity;
+import cn.haier.bio.medical.demo.control.send.TemptureResonseEntity;
 import cn.haier.bio.medical.ltb.ILTBListener;
 import cn.haier.bio.medical.ltb.LTBManager;
 import cn.haier.bio.medical.ltb.entity.LTBDataEntity;
-import cn.haier.bio.medical.rsms.entity.recv.RSMSCommontResponseEntity;
-import cn.haier.bio.medical.rsms.entity.recv.RSMSControlCommandEntity;
-import cn.haier.bio.medical.rsms.entity.recv.RSMSEnterConfigResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSNetworkResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryModulesResponseEntity;
-import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryPDAModulesResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryStatusResponseEntity;
-import cn.haier.bio.medical.rsms.entity.recv.RSMSRecvBaseEntity;
-import cn.haier.bio.medical.rsms.entity.send.RSMSAModelConfigEntity;
-import cn.haier.bio.medical.rsms.entity.send.RSMSDTEModelConfigEntity;
-import cn.haier.bio.medical.rsms.listener.IRSMSDTEListener;
-import cn.haier.bio.medical.rsms.listener.IRSMSListener;
-import cn.haier.bio.medical.rsms.serialport.RSMSCommandManager;
-import cn.haier.bio.medical.rsms.serialport.RSMSDTEManager;
+import cn.haier.bio.medical.rsms.IRSMSDTEListener;
+import cn.haier.bio.medical.rsms.entity.recv.server.RSMSCommandEntity;
+import cn.haier.bio.medical.rsms.RSMSDTEManager;
+import cn.haier.bio.medical.rsms.entity.send.client.RSMSCommandResponseEntity;
+import cn.haier.bio.medical.rsms.entity.send.client.RSMSOperationCollectionEntity;
 import cn.qd.peiwen.pwtools.EmptyUtils;
 import cn.qd.peiwen.serialport.PWSerialPort;
 
 
-public class MainActivity extends AppCompatActivity implements IRSMSListener, IRSMSDTEListener, ILTBListener {
+public class MainActivity extends AppCompatActivity implements IRSMSDTEListener, ILTBListener {
     private String code;
     private LTBDataEntity entity;
 
@@ -95,8 +90,6 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        RSMSCommandManager.getInstance().disable();
-        RSMSCommandManager.getInstance().release();
         RSMSDTEManager.getInstance().disable();
         RSMSDTEManager.getInstance().release();
     }
@@ -112,11 +105,8 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
             case R.id.query_modules:
                 RSMSDTEManager.getInstance().queryModules();
                 break;
-            case R.id.query_pda_modules:
-                RSMSCommandManager.getInstance().queryPDAModules();
-                break;
             case R.id.quit_config:
-                RSMSCommandManager.getInstance().quitConfigModel();
+                RSMSDTEManager.getInstance().quitConfigModel();
                 break;
             case R.id.clear_cache:
                 RSMSDTEManager.getInstance().clearCache();
@@ -125,213 +115,15 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
                 RSMSDTEManager.getInstance().recovery();
                 break;
             case R.id.enter_dce_config:
-                RSMSCommandManager.getInstance().enterDTEConfigModel();
-                break;
-            case R.id.enter_pda_config:
-                RSMSCommandManager.getInstance().enterPDAConfigModel();
+                RSMSOperationCollectionEntity operation = new RSMSOperationCollectionEntity();
+                operation.setDeviceType(CommandTools.DEVICE_TYPE);
+                operation.setProtocolVersion(CommandTools.PROTOCOL_VERSION);
+                operation.setOperation(0x01);
+                RSMSDTEManager.getInstance().collectionDeviceData(operation);
                 break;
             case R.id.clear:
                 textView.setText("");
                 break;
-            case R.id.config_network1: {
-                RSMSDTEModelConfigEntity entity = new RSMSDTEModelConfigEntity();
-                entity.setModel((byte) 0x01);
-                entity.setAddress("msg.haierbiomedical.com");
-                entity.setPort("1777");
-                RSMSCommandManager.getInstance().configDTEModel(entity);
-                break;
-            }
-            case R.id.config_network2: {
-                RSMSDTEModelConfigEntity entity = new RSMSDTEModelConfigEntity();
-                entity.setModel((byte) 0x02);
-                entity.setAddress("msg.haierbiomedical.com");
-                entity.setPort("1777");
-                entity.setWifiName("Bio_Wireless");
-                entity.setWifiPassword("12345678");
-                entity.setApnName("");
-                entity.setApnPassword("");
-                RSMSCommandManager.getInstance().configDTEModel(entity);
-                break;
-            }
-            case R.id.config_network3: {
-                RSMSDTEModelConfigEntity entity = new RSMSDTEModelConfigEntity();
-                entity.setModel((byte) 0x03);
-                entity.setAddress("msg.haierbiomedical.com");
-                entity.setPort("1777");
-                entity.setWifiName("Bio_Wireless");
-                entity.setWifiPassword("12345678");
-                entity.setApnName("");
-                entity.setApnPassword("");
-                RSMSCommandManager.getInstance().configDTEModel(entity);
-                break;
-            }
-            case R.id.config_becode: {
-                RSMSAModelConfigEntity entity = new RSMSAModelConfigEntity();
-                entity.setCode("BE0F0P01T00QGJ190004");
-                entity.setUsername("haier");
-                entity.setPassword("1234");
-                RSMSCommandManager.getInstance().configAModel(entity);
-                break;
-            }
-            case R.id.collection:
-//                byte[] data = {
-//                        (byte) 0x85, (byte) 0xFE, (byte) 0x31, (byte) 0xF8, (byte) 0xD8,
-//                        (byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xCE, (byte) 0xFF,
-//                        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-//                        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-//                        (byte) 0xDC, (byte) 0xFF, (byte) 0xDC, (byte) 0xFF, (byte) 0xDC,
-//                        (byte) 0xFF, (byte) 0xDC, (byte) 0xFF, (byte) 0xDC, (byte) 0xFF,
-//                        (byte) 0xDC, (byte) 0xFF, (byte) 0xDC, (byte) 0xFF, (byte) 0xDC,
-//                        (byte) 0xFF, (byte) 0xDC, (byte) 0xFF, (byte) 0xDC, (byte) 0xFF,
-//                        (byte) 0x24, (byte) 0xFA, (byte) 0x88, (byte) 0xFA, (byte) 0xC0,
-//                        (byte) 0xF9, (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-//                        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-//                        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-//                        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x01,
-//                        (byte) 0x00, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x00,
-//                        (byte) 0x00, (byte) 0x01, (byte) 0x01, (byte) 0x01, (byte) 0x01,
-//                        (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-//                        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
-//                };
-//                RSMSCommandManager.getInstance().collectionDeviceData(new TestSendEntity(data));
-                break;
-        }
-    }
-
-    @Override
-    public void onRSMSConnected() {
-        this.refreshTextView("模块连接成功\n");
-    }
-
-    @Override
-    public void onRSMSException() {
-        this.refreshTextView("模块连接断开，三秒后重新连接:\n");
-    }
-
-    @Override
-    public void onMessageSended(String data) {
-        final StringBuffer buffer = new StringBuffer();
-        buffer.append("发送数据:\n");
-        buffer.append(data + "\n");
-        this.refreshTextView(buffer.toString());
-    }
-
-    @Override
-    public void onMessageRecved(String data) {
-        final StringBuffer buffer = new StringBuffer();
-        buffer.append("接收数据:\n");
-        buffer.append(data + "\n");
-        this.refreshTextView(buffer.toString());
-    }
-
-    @Override
-    public void onControlReceived(RSMSControlCommandEntity entity) {
-
-    }
-
-    @Override
-    public void onRSMSStatusReceived(RSMSQueryStatusResponseEntity status) {
-        this.refreshTextView(status.toString());
-    }
-
-    @Override
-    public void onRSMSNetworkReceived(RSMSNetworkResponseEntity network) {
-        this.refreshTextView(network.toString());
-    }
-
-
-    @Override
-    public void onRSMSModulesReceived(RSMSQueryModulesResponseEntity modules) {
-        this.refreshTextView(modules.toString());
-    }
-
-    @Override
-    public void onRSMSPDAModulesReceived(RSMSQueryPDAModulesResponseEntity modules) {
-        this.refreshTextView(modules.toString());
-    }
-
-    @Override
-    public void onRSMSUnknownReceived() {
-        this.refreshTextView("接收到未知类型的信息\n");
-    }
-
-    @Override
-    public void onRSMSDataCollectionReceived(RSMSRecvBaseEntity entity) {
-        this.refreshTextView("数据采集成功\n");
-    }
-
-    @Override
-    public void onRSMSControlReceived(RSMSControlCommandEntity entity) {
-        switch (entity.getCommand()) {
-            case (short) 0x90FE:
-                TemptureEntity tempture = ControlTools.parseTemptureEntity(entity.getControl());
-                this.refreshTextView("收到控制温度指令，设置温度为：" + tempture.getTempture() + "\n");
-                break;
-            default:
-                break;
-        }
-    }
-
-    @Override
-    public void onRSMSRecoveryReceived(RSMSCommontResponseEntity response) {
-        if (0x01 == response.getResponse()) {
-            this.refreshTextView("恢复出厂设置成功\n");
-        } else {
-            this.refreshTextView("恢复出厂设置失败\n");
-        }
-    }
-
-    @Override
-    public void onRSMSClearCacheReceived(RSMSCommontResponseEntity response) {
-        if (0x01 == response.getResponse()) {
-            this.refreshTextView("清空本地缓存成功\n");
-        } else {
-            this.refreshTextView("清空本地缓存失败\n");
-        }
-    }
-
-    @Override
-    public void onRSMSQuitConfigReceived(RSMSCommontResponseEntity response) {
-        if (0x01 == response.getResponse()) {
-            this.refreshTextView("退出配置模式成功\n");
-        } else {
-            this.refreshTextView("退出配置模式失败\n");
-        }
-    }
-
-    @Override
-    public void onRSMSAModelConfigReceived(RSMSCommontResponseEntity response) {
-        if (0x01 == response.getResponse()) {
-            this.refreshTextView("PDA机编配置成功\n");
-        } else {
-            this.refreshTextView("PDA机编配置失败\n");
-        }
-    }
-
-    @Override
-    public void onRSMSBModelConfigReceived(RSMSCommontResponseEntity response) {
-        if (0x01 == response.getResponse()) {
-            this.refreshTextView("PDA配置网络参数成功\n");
-        } else {
-            this.refreshTextView("PDA配置网络参数失败\n");
-        }
-    }
-
-    @Override
-    public void onRSMSDTEModelConfigReceived(RSMSCommontResponseEntity response) {
-        if (0x01 == response.getResponse()) {
-            this.refreshTextView("DTE配置网络参数成功\n");
-        } else {
-            this.refreshTextView("DTE配置网络参数失败\n");
-        }
-    }
-
-    @Override
-    public void onRSMSEnterConfigReceived(RSMSEnterConfigResponseEntity response) {
-        if (0x01 == response.getResponse()) {
-            this.refreshTextView("进入" + (((byte) 0xB0 == response.getConfigModel()) ? "串口" : "PDA") + "配置模式成功\n");
-        } else {
-            this.refreshTextView("进入" + (((byte) 0xB0 == response.getConfigModel()) ? "串口" : "PDA") + "配置模式失败\n");
         }
     }
 
@@ -413,6 +205,39 @@ public class MainActivity extends AppCompatActivity implements IRSMSListener, IR
         SharedPreferences.Editor editor = sp.edit();
         editor.putString("DEV_CODE", this.code);
         editor.commit();
+    }
+
+    @Override
+    public void onControlCommandReceived(RSMSCommandEntity command) {
+        if(CommandTools.DEVICE_TYPE != command.getDeviceType() || CommandTools.PROTOCOL_VERSION < command.getProtocolVersion()){
+            RSMSCommandResponseEntity response = new RSMSCommandResponseEntity();
+            response.setHandleState((byte)0x03);
+            response.setCommand(command.getCommand());
+            response.setDeviceType(command.getDeviceType());
+            response.setIdentification(command.getIdentification());
+            response.setProtocolVersion(command.getProtocolVersion());
+            RSMSDTEManager.getInstance().collectionDeviceData(response);
+        }
+
+        switch (command.getCommand()){
+            case 0:
+                TemptureResonseEntity response = new TemptureResonseEntity();
+                response.setCommand(command.getCommand());
+                response.setDeviceType(command.getDeviceType());
+                response.setIdentification(command.getIdentification());
+                response.setProtocolVersion(command.getProtocolVersion());
+                TemptureCommandEntity entity = CommandTools.parseTemptureCommandEntity(command.getControl());
+                if(EmptyUtils.isEmpty(entity)){
+                    response.setHandleState((byte)0x02);
+                }else{
+                    response.setHandleState((byte)0x01);
+                }
+                RSMSDTEManager.getInstance().collectionDeviceData(response);
+                break;
+            default:
+
+                break;
+        }
     }
 
     @Override

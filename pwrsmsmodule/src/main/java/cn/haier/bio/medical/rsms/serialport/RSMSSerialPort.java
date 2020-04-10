@@ -4,16 +4,15 @@ package cn.haier.bio.medical.rsms.serialport;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
-import cn.haier.bio.medical.rsms.entity.recv.RSMSCommontResponseEntity;
-import cn.haier.bio.medical.rsms.entity.recv.RSMSControlCommandEntity;
+import cn.haier.bio.medical.rsms.entity.recv.RSMSResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSEnterConfigResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSNetworkResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryModulesResponseEntity;
-import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryPDAModulesResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryStatusResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSRecvBaseEntity;
+import cn.haier.bio.medical.rsms.entity.recv.server.RSMSTransmissionEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
-import cn.haier.bio.medical.rsms.listener.IRSMSListener;
+import cn.haier.bio.medical.rsms.serialport.listener.IRSMSListener;
 import cn.haier.bio.medical.rsms.tools.RSMSTools;
 import cn.qd.peiwen.pwlogger.PWLogger;
 import cn.qd.peiwen.pwtools.ByteUtils;
@@ -109,11 +108,7 @@ public class RSMSSerialPort implements PWSerialPortListener {
     }
 
     private void write(byte[] data) {
-        String log = ByteUtils.bytes2HexString(data, true, ", ");
-        PWLogger.d("RSMS Send:" + log);
-        if (EmptyUtils.isNotEmpty(this.listener)) {
-            this.listener.get().onMessageSended(log);
-        }
+        PWLogger.d("RSMS Send:" + ByteUtils.bytes2HexString(data, true, ", "));
         if (this.isInitialized() && this.enabled) {
             this.helper.write(data);
         }
@@ -169,7 +164,7 @@ public class RSMSSerialPort implements PWSerialPortListener {
             //长度监测
             //数据长度 = type(1) + cmd(1) + data(n) + check(1)
             //总长度 = header(2) + len(2) + data(len) + tailer(2)
-            short len = this.buffer.getShort(2);
+            int len = this.buffer.getShort(2);
             if (this.buffer.readableBytes() < len + 6) {
                 break;
             }
@@ -193,13 +188,9 @@ public class RSMSSerialPort implements PWSerialPortListener {
                 PWLogger.d("校验和不匹配，丢弃帧头，查找下一帧数据");
                 continue;
             }
-            short type = this.buffer.getShort(4);
+            int type = this.buffer.getShort(4);
             this.buffer.discardReadBytes();
-            String log = ByteUtils.bytes2HexString(data, true, ", ");
-            PWLogger.d("RSMS Recv:" + log);
-            if (EmptyUtils.isNotEmpty(this.listener)) {
-                this.listener.get().onMessageRecved(log);
-            }
+            PWLogger.d("RSMS Recv:" + ByteUtils.bytes2HexString(data, true, ", "));
             switch (type) {
                 case RSMSTools.RSMS_RESPONSE_QUERY_STATUS: {
                     RSMSQueryStatusResponseEntity entity = RSMSTools.parseRSMSStatusEntity(data);
@@ -222,13 +213,6 @@ public class RSMSSerialPort implements PWSerialPortListener {
                     }
                     break;
                 }
-                case RSMSTools.RSMS_RESPONSE_QUERY_PDA_MODULES: {
-                    RSMSQueryPDAModulesResponseEntity entity = RSMSTools.parseRSMSPDAModulesEntity(data);
-                    if (EmptyUtils.isNotEmpty(this.listener)) {
-                        this.listener.get().onRSMSPDAModulesReceived(entity);
-                    }
-                    break;
-                }
                 case RSMSTools.RSMS_RESPONSE_ENTER_CONFIG: {
                     RSMSEnterConfigResponseEntity entity = RSMSTools.parseRSMSConfigModelResponseEntity(data);
                     if (EmptyUtils.isNotEmpty(this.listener)) {
@@ -237,7 +221,7 @@ public class RSMSSerialPort implements PWSerialPortListener {
                     break;
                 }
                 case RSMSTools.RSMS_RESPONSE_CONFIG_QUIT: {
-                    RSMSCommontResponseEntity entity = RSMSTools.parseRSMSResponseEntity(data);
+                    RSMSResponseEntity entity = RSMSTools.parseRSMSResponseEntity(data);
                     entity.setCommandType(type);
                     if (EmptyUtils.isNotEmpty(this.listener)) {
                         this.listener.get().onRSMSQuitConfigReceived(entity);
@@ -245,31 +229,15 @@ public class RSMSSerialPort implements PWSerialPortListener {
                     break;
                 }
                 case RSMSTools.RSMS_RESPONSE_CONFIG_DTE_MODEL: {
-                    RSMSCommontResponseEntity entity = RSMSTools.parseRSMSResponseEntity(data);
+                    RSMSResponseEntity entity = RSMSTools.parseRSMSResponseEntity(data);
                     entity.setCommandType(type);
                     if (EmptyUtils.isNotEmpty(this.listener)) {
                         this.listener.get().onRSMSDTEModelConfigReceived(entity);
                     }
                     break;
                 }
-                case RSMSTools.RSMS_RESPONSE_CONFIG_A_MODEL: {
-                    RSMSCommontResponseEntity entity = RSMSTools.parseRSMSResponseEntity(data);
-                    entity.setCommandType(type);
-                    if (EmptyUtils.isNotEmpty(this.listener)) {
-                        this.listener.get().onRSMSAModelConfigReceived(entity);
-                    }
-                    break;
-                }
-                case RSMSTools.RSMS_RESPONSE_CONFIG_B_MODEL: {
-                    RSMSCommontResponseEntity entity = RSMSTools.parseRSMSResponseEntity(data);
-                    entity.setCommandType(type);
-                    if (EmptyUtils.isNotEmpty(this.listener)) {
-                        this.listener.get().onRSMSBModelConfigReceived(entity);
-                    }
-                    break;
-                }
                 case RSMSTools.RSMS_RESPONSE_CONFIG_RECOVERY: {
-                    RSMSCommontResponseEntity entity = RSMSTools.parseRSMSResponseEntity(data);
+                    RSMSResponseEntity entity = RSMSTools.parseRSMSResponseEntity(data);
                     entity.setCommandType(type);
                     if (EmptyUtils.isNotEmpty(this.listener)) {
                         this.listener.get().onRSMSRecoveryReceived(entity);
@@ -277,7 +245,7 @@ public class RSMSSerialPort implements PWSerialPortListener {
                     break;
                 }
                 case RSMSTools.RSMS_RESPONSE_CONFIG_CLEAR_CACHE: {
-                    RSMSCommontResponseEntity entity = RSMSTools.parseRSMSResponseEntity(data);
+                    RSMSResponseEntity entity = RSMSTools.parseRSMSResponseEntity(data);
                     entity.setCommandType(type);
                     if (EmptyUtils.isNotEmpty(this.listener)) {
                         this.listener.get().onRSMSClearCacheReceived(entity);
@@ -292,10 +260,10 @@ public class RSMSSerialPort implements PWSerialPortListener {
                     }
                     break;
                 }
-                case (short) RSMSTools.RSMS_CONTROL_COMMAND: {
-                    RSMSControlCommandEntity entity = RSMSTools.parseRSMSControlEntity(data);
+                case RSMSTools.RSMS_TRANSMISSION_COMMAND: {
+                    RSMSTransmissionEntity entity = RSMSTools.parseRSMSTransmissionEntity(data);
                     if (EmptyUtils.isNotEmpty(this.listener)) {
-                        this.listener.get().onRSMSControlReceived(entity);
+                        this.listener.get().onRSMSTransmissionReceived(entity);
                     }
                     break;
                 }

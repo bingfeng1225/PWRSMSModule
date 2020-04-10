@@ -1,17 +1,20 @@
-package cn.haier.bio.medical.rsms.entity.recv;
+package cn.haier.bio.medical.rsms.entity.recv.server;
 
-public class RSMSControlCommandEntity extends RSMSRecvBaseEntity {
+import cn.haier.bio.medical.rsms.entity.recv.RSMSRecvBaseEntity;
+
+public class RSMSTransmissionEntity extends RSMSRecvBaseEntity {
     private byte year; //年
     private byte month;//月
     private byte day;//日
     private byte hour;//时
     private byte minute;//分
     private byte second;//秒
-    private short command;
-    private byte[] control;
+    private byte dataType; //数据类型
+    private int deviceType;//设备类型
+    private int protocolVersion;//协议版本
 
 
-    public RSMSControlCommandEntity() {
+    public RSMSTransmissionEntity() {
 
     }
 
@@ -63,19 +66,27 @@ public class RSMSControlCommandEntity extends RSMSRecvBaseEntity {
         this.second = second;
     }
 
-    public short getCommand() {
-        return command;
+    public byte getDataType() {
+        return dataType;
     }
 
-    public void setCommand(short command) {
-        this.command = command;
+    public void setDataType(byte dataType) {
+        this.dataType = dataType;
     }
 
-    public byte[] getControl() {
-        return control;
+    public int getDeviceType() {
+        return deviceType;
     }
 
-    public void setControl(byte[] control) {
-        this.control = control;
+    public void setDeviceType(int deviceType) {
+        this.deviceType = deviceType;
+    }
+
+    public int getProtocolVersion() {
+        return protocolVersion;
+    }
+
+    public void setProtocolVersion(int protocolVersion) {
+        this.protocolVersion = protocolVersion;
     }
 }

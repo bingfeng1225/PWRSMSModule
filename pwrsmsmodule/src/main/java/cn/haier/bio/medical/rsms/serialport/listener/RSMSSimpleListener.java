@@ -1,16 +1,15 @@
-package cn.haier.bio.medical.rsms.listener;
+package cn.haier.bio.medical.rsms.serialport.listener;
 
 
 import java.io.IOException;
 
-import cn.haier.bio.medical.rsms.entity.recv.RSMSCommontResponseEntity;
-import cn.haier.bio.medical.rsms.entity.recv.RSMSControlCommandEntity;
+import cn.haier.bio.medical.rsms.entity.recv.RSMSResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSEnterConfigResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSNetworkResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryModulesResponseEntity;
-import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryPDAModulesResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryStatusResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSRecvBaseEntity;
+import cn.haier.bio.medical.rsms.entity.recv.server.RSMSTransmissionEntity;
 
 public class RSMSSimpleListener implements IRSMSListener {
     @Override
@@ -20,16 +19,6 @@ public class RSMSSimpleListener implements IRSMSListener {
 
     @Override
     public void onRSMSException() {
-
-    }
-
-    @Override
-    public void onMessageSended(String data) {
-
-    }
-
-    @Override
-    public void onMessageRecved(String data) {
 
     }
 
@@ -49,17 +38,7 @@ public class RSMSSimpleListener implements IRSMSListener {
     }
 
     @Override
-    public void onRSMSPDAModulesReceived(RSMSQueryPDAModulesResponseEntity modules) throws IOException {
-
-    }
-
-    @Override
     public void onRSMSUnknownReceived() throws IOException {
-
-    }
-
-    @Override
-    public void onRSMSControlReceived(RSMSControlCommandEntity entity) throws IOException {
 
     }
 
@@ -69,32 +48,27 @@ public class RSMSSimpleListener implements IRSMSListener {
     }
 
     @Override
-    public void onRSMSRecoveryReceived(RSMSCommontResponseEntity response) throws IOException {
+    public void onRSMSTransmissionReceived(RSMSTransmissionEntity entity) throws IOException {
 
     }
 
     @Override
-    public void onRSMSClearCacheReceived(RSMSCommontResponseEntity response) throws IOException {
+    public void onRSMSRecoveryReceived(RSMSResponseEntity response) throws IOException {
 
     }
 
     @Override
-    public void onRSMSQuitConfigReceived(RSMSCommontResponseEntity response) throws IOException {
+    public void onRSMSClearCacheReceived(RSMSResponseEntity response) throws IOException {
 
     }
 
     @Override
-    public void onRSMSAModelConfigReceived(RSMSCommontResponseEntity response) throws IOException {
+    public void onRSMSDTEModelConfigReceived(RSMSResponseEntity response) throws IOException {
 
     }
 
     @Override
-    public void onRSMSBModelConfigReceived(RSMSCommontResponseEntity response) throws IOException {
-
-    }
-
-    @Override
-    public void onRSMSDTEModelConfigReceived(RSMSCommontResponseEntity response) throws IOException {
+    public void onRSMSQuitConfigReceived(RSMSResponseEntity response) throws IOException {
 
     }
 

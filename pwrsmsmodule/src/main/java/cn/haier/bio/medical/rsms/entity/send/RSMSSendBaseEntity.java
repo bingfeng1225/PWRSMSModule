@@ -5,8 +5,7 @@ public class RSMSSendBaseEntity {
     protected final boolean needResponse;
 
     public RSMSSendBaseEntity(int commandType) {
-        this.needResponse = true;
-        this.commandType = commandType;
+        this(commandType,true);
     }
 
     public RSMSSendBaseEntity(int commandType, boolean needResponse) {

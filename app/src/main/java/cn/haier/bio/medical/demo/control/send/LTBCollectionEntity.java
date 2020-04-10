@@ -1,15 +1,15 @@
 package cn.haier.bio.medical.demo.control.send;
 
 import cn.haier.bio.medical.ltb.entity.LTBDataEntity;
-import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
-import cn.haier.bio.medical.rsms.tools.RSMSTools;
+import cn.haier.bio.medical.rsms.entity.send.client.RSMSDataCollectionEntity;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-public class LTBCollectionEntity extends RSMSSendBaseEntity {
+public class LTBCollectionEntity extends RSMSDataCollectionEntity {
     private LTBDataEntity entity;
     public LTBCollectionEntity() {
-        super(RSMSTools.RSMS_COMMAND_COLLECTION_DATA);
+        this.deviceType = 0x01;
+        this.protocolVersion = 0x00;
     }
 
     public LTBDataEntity getEntity() {
@@ -21,10 +21,8 @@ public class LTBCollectionEntity extends RSMSSendBaseEntity {
     }
 
     @Override
-    public byte[] packageSendMessage() {
+    public byte[] packageCollectionMessage() {
         ByteBuf buffer = Unpooled.buffer();
-        buffer.writeByte(0x85); //数据类型
-        buffer.writeByte(0xFE); //设备类型
         buffer.writeShortLE(this.entity.getTemperature()); //箱内温度
         buffer.writeShortLE(this.entity.getAmbientTemperature());//环境温度
         buffer.writeShortLE(this.entity.getCondenserTemperature());//冷凝器温度

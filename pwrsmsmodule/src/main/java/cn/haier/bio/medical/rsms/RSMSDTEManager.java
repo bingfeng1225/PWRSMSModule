@@ -1,4 +1,4 @@
-package cn.haier.bio.medical.rsms.serialport;
+package cn.haier.bio.medical.rsms;
 
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -10,19 +10,21 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.haier.bio.medical.rsms.entity.recv.RSMSCommontResponseEntity;
-import cn.haier.bio.medical.rsms.entity.recv.RSMSControlCommandEntity;
+import cn.haier.bio.medical.rsms.entity.recv.RSMSResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSEnterConfigResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSNetworkResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryModulesResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryStatusResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSRecvBaseEntity;
+import cn.haier.bio.medical.rsms.entity.recv.server.RSMSCommandEntity;
+import cn.haier.bio.medical.rsms.entity.recv.server.RSMSTransmissionEntity;
+import cn.haier.bio.medical.rsms.entity.send.RSMSDTEModelConfigEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSEnterConfigModelEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSQueryStatusEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
-import cn.haier.bio.medical.rsms.entity.send.RSMSDTEModelConfigEntity;
-import cn.haier.bio.medical.rsms.listener.IRSMSDTEListener;
-import cn.haier.bio.medical.rsms.listener.RSMSSimpleListener;
+import cn.haier.bio.medical.rsms.entity.send.client.RSMSCollectionEntity;
+import cn.haier.bio.medical.rsms.serialport.listener.RSMSSimpleListener;
+import cn.haier.bio.medical.rsms.serialport.RSMSSerialPort;
 import cn.haier.bio.medical.rsms.tools.RSMSTools;
 import cn.qd.peiwen.pwlogger.PWLogger;
 import cn.qd.peiwen.pwtools.ByteUtils;
@@ -41,7 +43,6 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     private RSMSSerialPort serialPort;
     private static RSMSDTEManager manager;
     private WeakReference<IRSMSDTEListener> listener;
-
 
     private int state;
     private boolean taskRuning = false;
@@ -143,7 +144,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         this.insertTask(entity);
     }
 
-    public void collectionDeviceData(RSMSSendBaseEntity entity) {
+    public void collectionDeviceData(RSMSCollectionEntity entity) {
         this.insertTask(entity);
     }
 
@@ -235,7 +236,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
             //延时2秒查询模块参数
         } else if (state == RSMS_STATE_RUNNING) {
             //延时五秒查询设备状态
-            PWLogger.e("延时五秒查询网络参数");
+            PWLogger.e("延时五秒查询状态参数");
             this.handler.removeMessages(RSMS_QUERY_STATE_MSG);
             this.handler.sendEmptyMessageDelayed(RSMS_QUERY_STATE_MSG, 5000);
         }
@@ -330,9 +331,18 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         this.status = status;
         //判断是用户查询还是自动查询，如果是用户查询需要调用接口反馈
         RSMSQueryStatusEntity entity = (RSMSQueryStatusEntity) sendBase;
-        if (entity.isFromUser() && EmptyUtils.isNotEmpty(this.listener)) {
-            this.listener.get().onStatusReceived(status);
+        if (entity.isFromUser()) {
+            if (EmptyUtils.isNotEmpty(this.listener)) {
+                this.listener.get().onStatusReceived(status);
+            }
         }
+        //TODO 判断物联板内时间是否已经与服务器同步，如果已经同步则将服务器时间传递到APP
+        //APP视情况可以矫正本地时间
+//        if (isReady()) {
+//            if (EmptyUtils.isNotEmpty(this.listener)) {
+//                this.listener.get().onStatusReceived(status);
+//            }
+//        }
         //任务处理结束，重置taskRunning标志
         this.commandResponseReceived();
     }
@@ -386,7 +396,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     }
 
     @Override
-    public void onRSMSQuitConfigReceived(RSMSCommontResponseEntity response) throws IOException {
+    public void onRSMSQuitConfigReceived(RSMSResponseEntity response) throws IOException {
         if (this.pda) {
             this.pda = false;
             PWLogger.e("退出PDA配置成功");
@@ -412,7 +422,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     }
 
     @Override
-    public void onRSMSClearCacheReceived(RSMSCommontResponseEntity response) throws IOException {
+    public void onRSMSClearCacheReceived(RSMSResponseEntity response) throws IOException {
         PWLogger.e("清空本地缓存成功");
         if (this.state == RSMS_STATE_RUNNING) {
             if (EmptyUtils.isNotEmpty(this.listener)) {
@@ -424,7 +434,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     }
 
     @Override
-    public void onRSMSRecoveryReceived(RSMSCommontResponseEntity response) throws IOException {
+    public void onRSMSRecoveryReceived(RSMSResponseEntity response) throws IOException {
         PWLogger.e("恢复出厂设置成功");
         this.quitConfigModel();
         if (EmptyUtils.isNotEmpty(this.listener)) {
@@ -435,12 +445,29 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     }
 
     @Override
-    public void onRSMSControlReceived(RSMSControlCommandEntity entity) throws IOException {
-        this.insertTask(new RSMSSendBaseEntity(RSMSTools.RSMS_CONTROL_RESPONSE,false));
-        if (EmptyUtils.isNotEmpty(this.listener)) {
-            this.listener.get().onControlReceived(entity);
+    public void onRSMSTransmissionReceived(RSMSTransmissionEntity entity) throws IOException {
+        //回复透传信息已接收
+        this.insertTask(new RSMSSendBaseEntity(RSMSTools.RSMS_TRANSMISSION_RESPONSE, false));
+        switch (entity.getDataType()) {
+            case RSMSTools.COLLECTION_CONTROL_COMMAND_TYPE:
+                RSMSCommandEntity command = (RSMSCommandEntity) entity;
+                if (EmptyUtils.isNotEmpty(this.listener)) {
+                    this.listener.get().onControlCommandReceived(command);
+                }
+                break;
+            default:
+                PWLogger.e("接收到无法处理的透传信息");
+                break;
         }
     }
+
+    //    @Override
+//    public void onRSMSControlReceived(RSMSServerCommandEntity entity) throws IOException {
+//        this.insertTask(new RSMSSendBaseEntity(RSMSTools.RSMS_TRANSMISSION_RESPONSE,false));
+//        if (EmptyUtils.isNotEmpty(this.listener)) {
+//            this.listener.get().onControlReceived(entity);
+//        }
+//    }
 
     private class RSMSHandler extends Handler {
         public RSMSHandler(Looper looper) {
@@ -480,8 +507,8 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                     PWLogger.e("开始发送指令");
                     RSMSSendBaseEntity entity = tasks.get(0);
                     serialPort.sendCommand(tasks.get(0));
-                    if(!entity.isNeedResponse()){
-                        sendEmptyMessageDelayed(RSMS_FINISH_TASK_MSG,100);
+                    if (!entity.isNeedResponse()) {
+                        sendEmptyMessageDelayed(RSMS_FINISH_TASK_MSG, 100);
                     }
                     break;
                 case RSMS_FINISH_TASK_MSG:

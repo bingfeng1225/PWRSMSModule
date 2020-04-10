@@ -3,13 +3,13 @@ package cn.haier.bio.medical.rsms.tools;
 import java.net.NetworkInterface;
 import java.util.Enumeration;
 
-import cn.haier.bio.medical.rsms.entity.recv.RSMSCommontResponseEntity;
-import cn.haier.bio.medical.rsms.entity.recv.RSMSControlCommandEntity;
+import cn.haier.bio.medical.rsms.entity.recv.RSMSResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSEnterConfigResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSNetworkResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryModulesResponseEntity;
-import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryPDAModulesResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryStatusResponseEntity;
+import cn.haier.bio.medical.rsms.entity.recv.server.RSMSCommandEntity;
+import cn.haier.bio.medical.rsms.entity.recv.server.RSMSTransmissionEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
 import cn.qd.peiwen.pwlogger.PWLogger;
 import cn.qd.peiwen.pwtools.EmptyUtils;
@@ -20,6 +20,12 @@ public class RSMSTools {
     public static final byte DEVICE = (byte) 0xA0;
     public static final byte DTE_CONFIG = (byte) 0xB0;
     public static final byte PDA_CONFIG = (byte) 0xB1;
+
+    public static final byte COLLECTION_DATA_TYPE = (byte) 0x85;
+    public static final byte COLLECTION_EVENT_TYPE = (byte) 0x86;
+    public static final byte COLLECTION_CONTROL_COMMAND_TYPE = (byte) 0x87;
+    public static final byte COLLECTION_CONTROL_RESPONSE_TYPE = (byte) 0x88;
+
     public static final byte[] HEADER = {(byte) 0x55, (byte) 0xAA};
     public static final byte[] TAILER = {(byte) 0xEA, (byte) 0xEE};
     public static final byte[] DEFAULT_MAC = {
@@ -41,9 +47,6 @@ public class RSMSTools {
     public static final int RSMS_COMMAND_QUERY_MODULES = 0x1103;
     public static final int RSMS_RESPONSE_QUERY_MODULES = 0x1203;
 
-    public static final int RSMS_COMMAND_QUERY_PDA_MODULES = 0x1104;
-    public static final int RSMS_RESPONSE_QUERY_PDA_MODULES = 0x1204;
-
     public static final int RSMS_COMMAND_ENTER_CONFIG = 0x1301;
     public static final int RSMS_RESPONSE_ENTER_CONFIG = 0x1401;
 
@@ -52,12 +55,6 @@ public class RSMSTools {
 
     public static final int RSMS_COMMAND_CONFIG_DTE_MODEL = 0x1303;
     public static final int RSMS_RESPONSE_CONFIG_DTE_MODEL = 0x1403;
-
-    public static final int RSMS_COMMAND_CONFIG_A_MODEL = 0x1304;
-    public static final int RSMS_RESPONSE_CONFIG_A_MODEL = 0x1404;
-
-    public static final int RSMS_COMMAND_CONFIG_B_MODEL = 0x1305;
-    public static final int RSMS_RESPONSE_CONFIG_B_MODEL = 0x1405;
 
     public static final int RSMS_COMMAND_CONFIG_RECOVERY = 0x1306;
     public static final int RSMS_RESPONSE_CONFIG_RECOVERY = 0x1406;
@@ -68,8 +65,8 @@ public class RSMSTools {
     public static final int RSMS_COMMAND_COLLECTION_DATA = 0x1501;
     public static final int RSMS_RESPONSE_COLLECTION_DATA = 0x1601;
 
-    public static final int RSMS_CONTROL_COMMAND = 0xC001;
-    public static final int RSMS_CONTROL_RESPONSE = 0xC101;
+    public static final int RSMS_TRANSMISSION_COMMAND = 0xC001;
+    public static final int RSMS_TRANSMISSION_RESPONSE = 0xC101;
 
     public static boolean checkFrame(byte[] data) {
         byte check = data[data.length - 3];
@@ -244,19 +241,10 @@ public class RSMSTools {
         return entity;
     }
 
-    public static RSMSQueryPDAModulesResponseEntity parseRSMSPDAModulesEntity(byte[] data) {
+    public static RSMSResponseEntity parseRSMSResponseEntity(byte[] data) {
         ByteBuf buffer = Unpooled.copiedBuffer(data);
         buffer.skipBytes(6);
-        RSMSQueryPDAModulesResponseEntity entity = new RSMSQueryPDAModulesResponseEntity();
-        entity.setDeviceType(buffer.readByte());
-        entity.setConfigType(buffer.readByte());
-        return entity;
-    }
-
-    public static RSMSCommontResponseEntity parseRSMSResponseEntity(byte[] data) {
-        ByteBuf buffer = Unpooled.copiedBuffer(data);
-        buffer.skipBytes(6);
-        RSMSCommontResponseEntity entity = new RSMSCommontResponseEntity();
+        RSMSResponseEntity entity = new RSMSResponseEntity();
         entity.setResponse(buffer.readByte());
         return entity;
     }
@@ -272,23 +260,49 @@ public class RSMSTools {
         return entity;
     }
 
-    public static RSMSControlCommandEntity parseRSMSControlEntity(byte[] data) {
+    public static RSMSTransmissionEntity parseRSMSTransmissionEntity(byte[] data) {
         ByteBuf buffer = Unpooled.copiedBuffer(data);
         buffer.skipBytes(6);
-        RSMSControlCommandEntity entity = new RSMSControlCommandEntity();
-        entity.setYear(buffer.readByte());
-        entity.setMonth(buffer.readByte());
-        entity.setDay(buffer.readByte());
-        entity.setHour(buffer.readByte());
-        entity.setMinute(buffer.readByte());
-        entity.setSecond(buffer.readByte());
-        entity.setCommand(buffer.readShort());
-        int read = buffer.readerIndex();
-        int write = buffer.writerIndex();
-        byte[] control = new byte[write - read - 3];
-        buffer.readBytes(control, 0, control.length);
-        entity.setControl(control);
-        return entity;
+        byte year = buffer.readByte();
+        byte month = buffer.readByte();
+        byte day = buffer.readByte();
+        byte hour = buffer.readByte();
+        byte minute = buffer.readByte();
+        byte second = buffer.readByte();
+        byte dataType = buffer.readByte();
+        if(COLLECTION_CONTROL_COMMAND_TYPE != dataType){
+            RSMSTransmissionEntity entity = new RSMSTransmissionEntity();
+            entity.setYear(year);
+            entity.setMonth(month);
+            entity.setDay(day);
+            entity.setHour(hour);
+            entity.setMinute(minute);
+            entity.setSecond(second);
+            entity.setDataType(dataType);
+            return entity;
+        }else{
+            RSMSCommandEntity entity = new RSMSCommandEntity();
+            entity.setYear(year);
+            entity.setMonth(month);
+            entity.setDay(day);
+            entity.setHour(hour);
+            entity.setMinute(minute);
+            entity.setSecond(second);
+
+            entity.setDataType(dataType);
+
+            entity.setDeviceType(buffer.readShortLE());
+            entity.setProtocolVersion(buffer.readShortLE());
+            entity.setCommand(buffer.readShortLE());
+            entity.setIdentification(buffer.readLongLE());
+
+            int read = buffer.readerIndex();
+            int write = buffer.writerIndex();
+            byte[] control = new byte[write - read - 3];
+            buffer.readBytes(control, 0, control.length);
+            entity.setControl(control);
+            return entity;
+        }
     }
 
     //校验和取低8位算法

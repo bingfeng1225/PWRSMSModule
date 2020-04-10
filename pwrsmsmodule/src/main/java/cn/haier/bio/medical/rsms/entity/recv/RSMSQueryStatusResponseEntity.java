@@ -8,8 +8,8 @@ public class RSMSQueryStatusResponseEntity extends RSMSRecvBaseEntity {
     private byte encode;//编码规则状态码
     private byte level; //4G信号强度
     private byte wifiLevel; //WIFI信号强度
-    private short uploadFrequency;//上传频率
-    private short acquisitionFrequency;//采集频率
+    private int uploadFrequency;//上传频率
+    private int acquisitionFrequency;//采集频率
     private byte year; //年
     private byte month;//月
     private byte day;//日
@@ -61,19 +61,19 @@ public class RSMSQueryStatusResponseEntity extends RSMSRecvBaseEntity {
         this.wifiLevel = wifiLevel;
     }
 
-    public short getUploadFrequency() {
+    public int getUploadFrequency() {
         return uploadFrequency;
     }
 
-    public void setUploadFrequency(short uploadFrequency) {
+    public void setUploadFrequency(int uploadFrequency) {
         this.uploadFrequency = uploadFrequency;
     }
 
-    public short getAcquisitionFrequency() {
+    public int getAcquisitionFrequency() {
         return acquisitionFrequency;
     }
 
-    public void setAcquisitionFrequency(short acquisitionFrequency) {
+    public void setAcquisitionFrequency(int acquisitionFrequency) {
         this.acquisitionFrequency = acquisitionFrequency;
     }
 
