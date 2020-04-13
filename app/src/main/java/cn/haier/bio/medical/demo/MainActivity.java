@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
         buf.resetReaderIndex();
 
         PWLogger.e("xx = " + xx);
-        PWLogger.e("xxx = " + (short)xx);
+        PWLogger.e("xxx = " + (short) xx);
         PWLogger.e("xxxx = " + buf.readShortLE());
     }
 
@@ -233,14 +233,14 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
 
     @Override
     public void onControlCommandReceived(RSMSCommandEntity command) {
-        switch (command.getCommand()){
+        switch (command.getCommand()) {
             case CommandTools.CONTROL_TEMPERATURE_COMMAND:
                 TemptureCommandEntity entity = CommandTools.parseTemptureCommandEntity(command.getControl());
                 TemptureResonseEntity response = new TemptureResonseEntity(command);
-                if(EmptyUtils.isEmpty(entity)){
-                    response.setHandleState((byte)0x02);
-                }else{
-                    response.setHandleState((byte)0x01);
+                if (EmptyUtils.isEmpty(entity)) {
+                    response.setHandleState((byte) 0x02);
+                } else {
+                    response.setHandleState((byte) 0x01);
                 }
                 RSMSDTEManager.getInstance().collectionDeviceData(response);
                 break;
@@ -251,9 +251,15 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
     }
 
     @Override
-    public boolean checkControlCommand(int deviceType, int protocolVersion, int controlCommand) {
-        return CommandTools.checkControlCommand(deviceType,protocolVersion,controlCommand);
+    public void onDateTimeChanged(int year, int month, int day, int hour, int minute, int second) {
+        PWLogger.e("RSMS DateTime:" + (2000 + year) + "-" + month + "-" + day +" "+hour + ":" + minute + ":" + second);
     }
+
+    @Override
+    public boolean checkControlCommand(int deviceType, int protocolVersion, int controlCommand) {
+        return CommandTools.checkControlCommand(deviceType, protocolVersion, controlCommand);
+    }
+
 
     @Override
     public void onNetworkReceived(RSMSNetworkResponseEntity network) {

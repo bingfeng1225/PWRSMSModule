@@ -332,20 +332,17 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         this.status = status;
         //判断是用户查询还是自动查询，如果是用户查询需要调用接口反馈
         RSMSQueryStatusEntity entity = (RSMSQueryStatusEntity) sendBase;
+        this.commandResponseReceived();
         if (entity.isFromUser()) {
             if (EmptyUtils.isNotEmpty(this.listener)) {
                 this.listener.get().onStatusReceived(status);
             }
+        } else {
+            //TODO 判断物联板内时间是否已经与服务器同步
+            if (EmptyUtils.isNotEmpty(this.listener)) {
+                this.listener.get().onDateTimeChanged(status.getYear(), status.getMonth(), status.getDay(), status.getHour(), status.getMinute(), status.getSecond());
+            }
         }
-        //TODO 判断物联板内时间是否已经与服务器同步，如果已经同步则将服务器时间传递到APP
-        //APP视情况可以矫正本地时间
-//        if (isReady()) {
-//            if (EmptyUtils.isNotEmpty(this.listener)) {
-//                this.listener.get().onStatusReceived(status);
-//            }
-//        }
-        //任务处理结束，重置taskRunning标志
-        this.commandResponseReceived();
     }
 
     @Override
