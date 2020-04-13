@@ -23,6 +23,7 @@ import cn.haier.bio.medical.rsms.entity.send.RSMSEnterConfigModelEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSQueryStatusEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
 import cn.haier.bio.medical.rsms.entity.send.client.RSMSCollectionEntity;
+import cn.haier.bio.medical.rsms.entity.send.client.RSMSCommandResponseEntity;
 import cn.haier.bio.medical.rsms.serialport.listener.RSMSSimpleListener;
 import cn.haier.bio.medical.rsms.serialport.RSMSSerialPort;
 import cn.haier.bio.medical.rsms.tools.RSMSTools;
@@ -450,9 +451,23 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         this.insertTask(new RSMSSendBaseEntity(RSMSTools.RSMS_TRANSMISSION_RESPONSE, false));
         switch (entity.getDataType()) {
             case RSMSTools.COLLECTION_CONTROL_COMMAND_TYPE:
-                RSMSCommandEntity command = (RSMSCommandEntity) entity;
+                RSMSCommandEntity commandEntity = (RSMSCommandEntity) entity;
+                int command = commandEntity.getCommand();
+                int deviceType = commandEntity.getDeviceType();
+                int protocolVersion = commandEntity.getProtocolVersion();
+                PWLogger.e("接收到控制指令透传信息:{command:" + command + ", deviceType:" + deviceType + ", protocolVersion:" + protocolVersion + "}");
                 if (EmptyUtils.isNotEmpty(this.listener)) {
-                    this.listener.get().onControlCommandReceived(command);
+                    if (this.listener.get().checkControlCommand(deviceType, protocolVersion, command)) {
+                        this.listener.get().onControlCommandReceived(commandEntity);
+                    } else {
+                        RSMSCommandResponseEntity response = new RSMSCommandResponseEntity();
+                        response.setHandleState((byte)0x03);
+                        response.setCommand(command);
+                        response.setDeviceType(deviceType);
+                        response.setProtocolVersion(protocolVersion);
+                        response.setIdentification(commandEntity.getIdentification());
+                        this.insertTask(response);
+                    }
                 }
                 break;
             default:

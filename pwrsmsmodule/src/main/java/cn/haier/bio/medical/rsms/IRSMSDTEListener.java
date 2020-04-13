@@ -20,4 +20,5 @@ public interface IRSMSDTEListener {
     void onNetworkReceived(RSMSNetworkResponseEntity network);
     void onStatusReceived(RSMSQueryStatusResponseEntity status);
     void onModulesReceived(RSMSQueryModulesResponseEntity modules);
+    boolean checkControlCommand(int deviceType,int protocolVersion,int controlCommand);
 }
