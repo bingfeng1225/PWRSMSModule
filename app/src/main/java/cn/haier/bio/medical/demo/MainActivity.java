@@ -233,24 +233,14 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
 
     @Override
     public void onControlCommandReceived(RSMSCommandEntity command) {
-        if(CommandTools.DEVICE_TYPE != command.getDeviceType() || CommandTools.PROTOCOL_VERSION < command.getProtocolVersion()){
-            RSMSCommandResponseEntity response = new RSMSCommandResponseEntity();
-            response.setHandleState((byte)0x03);
-            response.setCommand(command.getCommand());
-            response.setDeviceType(command.getDeviceType());
-            response.setIdentification(command.getIdentification());
-            response.setProtocolVersion(command.getProtocolVersion());
-            RSMSDTEManager.getInstance().collectionDeviceData(response);
-        }
-
         switch (command.getCommand()){
-            case 0:
+            case CommandTools.CONTROL_TEMPERATURE_COMMAND:
+                TemptureCommandEntity entity = CommandTools.parseTemptureCommandEntity(command.getControl());
                 TemptureResonseEntity response = new TemptureResonseEntity();
                 response.setCommand(command.getCommand());
                 response.setDeviceType(command.getDeviceType());
                 response.setIdentification(command.getIdentification());
                 response.setProtocolVersion(command.getProtocolVersion());
-                TemptureCommandEntity entity = CommandTools.parseTemptureCommandEntity(command.getControl());
                 if(EmptyUtils.isEmpty(entity)){
                     response.setHandleState((byte)0x02);
                 }else{
@@ -262,6 +252,11 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
 
                 break;
         }
+    }
+
+    @Override
+    public boolean checkControlCommand(int deviceType, int protocolVersion, int controlCommand) {
+        return CommandTools.checkControlCommand(deviceType,protocolVersion,controlCommand);
     }
 
     @Override

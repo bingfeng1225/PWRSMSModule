@@ -451,32 +451,32 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         this.insertTask(new RSMSSendBaseEntity(RSMSTools.RSMS_TRANSMISSION_RESPONSE, false));
         switch (entity.getDataType()) {
             case RSMSTools.COLLECTION_CONTROL_COMMAND_TYPE:
-                RSMSCommandEntity commandEntity = (RSMSCommandEntity) entity;
-                int command = commandEntity.getCommand();
-                int deviceType = commandEntity.getDeviceType();
-                int protocolVersion = commandEntity.getProtocolVersion();
-                PWLogger.e("接收到控制指令透传信息:{command:" + command + ", deviceType:" + deviceType + ", protocolVersion:" + protocolVersion + "}");
-                if (EmptyUtils.isNotEmpty(this.listener)) {
-                    if (this.listener.get().checkControlCommand(deviceType, protocolVersion, command)) {
-                        this.listener.get().onControlCommandReceived(commandEntity);
-                    } else {
-                        RSMSCommandResponseEntity response = new RSMSCommandResponseEntity();
-                        response.setHandleState((byte)0x03);
-                        response.setCommand(command);
-                        response.setDeviceType(deviceType);
-                        response.setProtocolVersion(protocolVersion);
-                        response.setIdentification(commandEntity.getIdentification());
-                        this.insertTask(response);
-                    }
-                }
-                break;
-            default:
-                PWLogger.e("接收到无法处理的透传信息");
-                break;
+                RSMSCommandEntity command = (RSMSCommandEntity) entity;
+                int deviceType = command.getDeviceType();
+                int controlCommand = command.getCommand();
+                int protocolVersion = command.getProtocolVersion();
+                PWLogger.e("接收到控制指令透传信息:{deviceType:" + deviceType + ", protocolVersion:" + protocolVersion + ",controlCommand:" + controlCommand +"}");
+        if (EmptyUtils.isNotEmpty(this.listener)) {
+            if (this.listener.get().checkControlCommand(deviceType, protocolVersion, controlCommand)) {
+                this.listener.get().onControlCommandReceived(command);
+            } else {
+                RSMSCommandResponseEntity response = new RSMSCommandResponseEntity();
+                response.setHandleState((byte) 0x03);
+                response.setDeviceType(deviceType);
+                response.setCommand(controlCommand);
+                response.setProtocolVersion(protocolVersion);
+                response.setIdentification(command.getIdentification());
+                this.insertTask(response);
+            }
         }
+        break;
+        default:
+        PWLogger.e("接收到无法处理的透传信息");
+        break;
     }
+}
 
-    //    @Override
+//    @Override
 //    public void onRSMSControlReceived(RSMSServerCommandEntity entity) throws IOException {
 //        this.insertTask(new RSMSSendBaseEntity(RSMSTools.RSMS_TRANSMISSION_RESPONSE,false));
 //        if (EmptyUtils.isNotEmpty(this.listener)) {
@@ -484,80 +484,80 @@ public class RSMSDTEManager extends RSMSSimpleListener {
 //        }
 //    }
 
-    private class RSMSHandler extends Handler {
-        public RSMSHandler(Looper looper) {
-            super(looper);
-        }
+private class RSMSHandler extends Handler {
+    public RSMSHandler(Looper looper) {
+        super(looper);
+    }
 
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case RSMS_INSERT_TASK_MSG:
-                    PWLogger.e("添加一个新的任务");
-                    tasks.add((RSMSSendBaseEntity) msg.obj);
-                    sendEmptyMessage(RSMS_PROCESS_TASK_MSG);
+    @Override
+    public void handleMessage(Message msg) {
+        super.handleMessage(msg);
+        switch (msg.what) {
+            case RSMS_INSERT_TASK_MSG:
+                PWLogger.e("添加一个新的任务");
+                tasks.add((RSMSSendBaseEntity) msg.obj);
+                sendEmptyMessage(RSMS_PROCESS_TASK_MSG);
+                break;
+            case RSMS_PROCESS_TASK_MSG:
+                PWLogger.e("处理任务");
+                if (!isInitialized()) {
+                    PWLogger.e("对象已销毁，无法处理，跳过....");
                     break;
-                case RSMS_PROCESS_TASK_MSG:
-                    PWLogger.e("处理任务");
-                    if (!isInitialized()) {
-                        PWLogger.e("对象已销毁，无法处理，跳过....");
-                        break;
-                    }
-                    if (state == RSMS_STATE_IDLE) {
-                        PWLogger.e("串口连接中断，无法处理，跳过....");
-                        break;
-                    }
-                    if (EmptyUtils.isEmpty(tasks)) {
-                        PWLogger.e("指令队列为空");
-                        RSMSDTEManager.this.taskQueueEmpty();
-                        break;
-                    }
-                    if (taskRuning) {
-                        PWLogger.e("任务处理中，跳过....");
-                        break;
-                    }
-                    taskRuning = true;
-                    sendBase = tasks.get(0);
-                    PWLogger.e("开始发送指令");
-                    RSMSSendBaseEntity entity = tasks.get(0);
-                    serialPort.sendCommand(tasks.get(0));
-                    if (!entity.isNeedResponse()) {
-                        sendEmptyMessageDelayed(RSMS_FINISH_TASK_MSG, 100);
-                    }
+                }
+                if (state == RSMS_STATE_IDLE) {
+                    PWLogger.e("串口连接中断，无法处理，跳过....");
                     break;
-                case RSMS_FINISH_TASK_MSG:
-                    PWLogger.e("任务处理结束");
-                    taskRuning = false;
-                    if (EmptyUtils.isNotEmpty(tasks)) {
-                        tasks.remove(0);
-                    }
-                    sendEmptyMessage(RSMS_PROCESS_TASK_MSG);
+                }
+                if (EmptyUtils.isEmpty(tasks)) {
+                    PWLogger.e("指令队列为空");
+                    RSMSDTEManager.this.taskQueueEmpty();
                     break;
-                case RSMS_QUERY_STATE_MSG:
-                    if (state != RSMS_STATE_RUNNING) {
-                        PWLogger.e("非运行模式，无需查询设备状态");
-                        break;
-                    }
-                    String code = null;
-                    if (EmptyUtils.isNotEmpty(listener)) {
-                        code = listener.get().findDeviceCode();
-                    }
-                    RSMSQueryStatusEntity status = new RSMSQueryStatusEntity();
-                    status.setMac(mac);
-                    status.setFromUser(false);
-                    status.setMcu(RSMSTools.DEFAULT_MAC);
-                    status.setCode(RSMSTools.generateCode(code));
-                    RSMSDTEManager.this.insertTask(status);
+                }
+                if (taskRuning) {
+                    PWLogger.e("任务处理中，跳过....");
                     break;
-                case RSMS_QUERY_MODULES_MSG:
-                    if (state != RSMS_STATE_STRTUP) {
-                        PWLogger.e("非启动模式，无需查询模块参数");
-                        break;
-                    }
-                    RSMSDTEManager.this.queryModules();
+                }
+                taskRuning = true;
+                sendBase = tasks.get(0);
+                PWLogger.e("开始发送指令");
+                RSMSSendBaseEntity entity = tasks.get(0);
+                serialPort.sendCommand(tasks.get(0));
+                if (!entity.isNeedResponse()) {
+                    sendEmptyMessageDelayed(RSMS_FINISH_TASK_MSG, 100);
+                }
+                break;
+            case RSMS_FINISH_TASK_MSG:
+                PWLogger.e("任务处理结束");
+                taskRuning = false;
+                if (EmptyUtils.isNotEmpty(tasks)) {
+                    tasks.remove(0);
+                }
+                sendEmptyMessage(RSMS_PROCESS_TASK_MSG);
+                break;
+            case RSMS_QUERY_STATE_MSG:
+                if (state != RSMS_STATE_RUNNING) {
+                    PWLogger.e("非运行模式，无需查询设备状态");
                     break;
-            }
+                }
+                String code = null;
+                if (EmptyUtils.isNotEmpty(listener)) {
+                    code = listener.get().findDeviceCode();
+                }
+                RSMSQueryStatusEntity status = new RSMSQueryStatusEntity();
+                status.setMac(mac);
+                status.setFromUser(false);
+                status.setMcu(RSMSTools.DEFAULT_MAC);
+                status.setCode(RSMSTools.generateCode(code));
+                RSMSDTEManager.this.insertTask(status);
+                break;
+            case RSMS_QUERY_MODULES_MSG:
+                if (state != RSMS_STATE_STRTUP) {
+                    PWLogger.e("非启动模式，无需查询模块参数");
+                    break;
+                }
+                RSMSDTEManager.this.queryModules();
+                break;
         }
     }
+}
 }
