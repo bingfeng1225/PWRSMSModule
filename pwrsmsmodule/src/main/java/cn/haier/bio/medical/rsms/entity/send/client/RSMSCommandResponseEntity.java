@@ -1,5 +1,6 @@
 package cn.haier.bio.medical.rsms.entity.send.client;
 
+import cn.haier.bio.medical.rsms.entity.recv.server.RSMSCommandEntity;
 import cn.haier.bio.medical.rsms.tools.RSMSTools;
 import cn.qd.peiwen.pwtools.EmptyUtils;
 import io.netty.buffer.ByteBuf;
@@ -10,24 +11,12 @@ public class RSMSCommandResponseEntity extends RSMSCollectionEntity {
     protected byte handleState;//处理状态
     protected long identification;//指令标识
 
-    public RSMSCommandResponseEntity() {
+    public RSMSCommandResponseEntity(RSMSCommandEntity entity) {
+        this.command = entity.getCommand();
+        this.deviceType = entity.getDeviceType();
+        this.identification = entity.getIdentification();
+        this.protocolVersion = entity.getProtocolVersion();
         this.dataType = RSMSTools.COLLECTION_CONTROL_RESPONSE_TYPE;
-    }
-
-    public int getCommand() {
-        return command;
-    }
-
-    public void setCommand(int command) {
-        this.command = command;
-    }
-
-    public long getIdentification() {
-        return identification;
-    }
-
-    public void setIdentification(long identification) {
-        this.identification = identification;
     }
 
     public byte getHandleState() {

@@ -236,11 +236,7 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
         switch (command.getCommand()){
             case CommandTools.CONTROL_TEMPERATURE_COMMAND:
                 TemptureCommandEntity entity = CommandTools.parseTemptureCommandEntity(command.getControl());
-                TemptureResonseEntity response = new TemptureResonseEntity();
-                response.setCommand(command.getCommand());
-                response.setDeviceType(command.getDeviceType());
-                response.setIdentification(command.getIdentification());
-                response.setProtocolVersion(command.getProtocolVersion());
+                TemptureResonseEntity response = new TemptureResonseEntity(command);
                 if(EmptyUtils.isEmpty(entity)){
                     response.setHandleState((byte)0x02);
                 }else{
