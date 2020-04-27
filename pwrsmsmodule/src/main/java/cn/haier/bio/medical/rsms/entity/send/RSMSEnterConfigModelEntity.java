@@ -7,7 +7,7 @@ public class RSMSEnterConfigModelEntity extends RSMSSendBaseEntity {
     private boolean pda;
 
     public RSMSEnterConfigModelEntity(boolean pda) {
-        super(RSMSTools.RSMS_COMMAND_ENTER_CONFIG);
+        super((short) RSMSTools.RSMS_COMMAND_ENTER_CONFIG);
         this.pda = pda;
     }
 

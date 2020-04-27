@@ -4,12 +4,12 @@ import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
 import cn.haier.bio.medical.rsms.tools.RSMSTools;
 
 public abstract class RSMSCollectionEntity extends RSMSSendBaseEntity {
-    protected byte dataType; //统计数据类型：设备数据、用户数据、控制指令应答数据
+    protected byte dataType; //统计数据类型：时间矫正 设备数据、用户数据、控制指令应答数据
     protected int deviceType;//设备类型
     protected int protocolVersion;//协议版本
 
     public RSMSCollectionEntity() {
-        super(RSMSTools.RSMS_COMMAND_COLLECTION_DATA);
+        super((short) RSMSTools.RSMS_COMMAND_COLLECTION_DATA);
     }
 
     public int getDeviceType() {

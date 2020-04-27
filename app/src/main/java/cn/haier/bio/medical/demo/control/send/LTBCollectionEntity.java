@@ -1,11 +1,11 @@
 package cn.haier.bio.medical.demo.control.send;
 
 import cn.haier.bio.medical.ltb.entity.LTBDataEntity;
-import cn.haier.bio.medical.rsms.entity.send.client.RSMSDataCollectionEntity;
+import cn.haier.bio.medical.rsms.entity.send.client.RSMSDeviceDataCollectionEntity;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-public class LTBCollectionEntity extends RSMSDataCollectionEntity {
+public class LTBCollectionEntity extends RSMSDeviceDataCollectionEntity {
     private LTBDataEntity entity;
     public LTBCollectionEntity() {
         this.deviceType = 0x01;

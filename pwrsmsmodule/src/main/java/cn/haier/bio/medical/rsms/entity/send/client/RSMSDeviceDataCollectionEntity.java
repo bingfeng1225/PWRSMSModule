@@ -5,8 +5,8 @@ import cn.qd.peiwen.pwtools.EmptyUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-public class RSMSDataCollectionEntity extends RSMSCollectionEntity {
-    public RSMSDataCollectionEntity() {
+public class RSMSDeviceDataCollectionEntity extends RSMSCollectionEntity {
+    public RSMSDeviceDataCollectionEntity() {
         this.dataType = RSMSTools.COLLECTION_DATA_TYPE;
     }
 
@@ -21,7 +21,6 @@ public class RSMSDataCollectionEntity extends RSMSCollectionEntity {
         buffer.writeByte(this.dataType);
         buffer.writeShortLE(this.deviceType);
         buffer.writeShortLE(this.protocolVersion);
-
         //设备数据协议中数据段的封装
         byte[] message = this.packageCollectionMessage();
         if(EmptyUtils.isNotEmpty(message)){

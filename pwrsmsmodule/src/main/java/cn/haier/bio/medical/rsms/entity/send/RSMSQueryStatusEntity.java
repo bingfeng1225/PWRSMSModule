@@ -11,7 +11,7 @@ public class RSMSQueryStatusEntity extends RSMSSendBaseEntity {
     private boolean fromUser;
 
     public RSMSQueryStatusEntity() {
-        super(RSMSTools.RSMS_COMMAND_QUERY_STATUS);
+        super((short) RSMSTools.RSMS_COMMAND_QUERY_STATUS);
     }
 
     public String getCode() {

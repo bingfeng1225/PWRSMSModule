@@ -9,9 +9,11 @@ import cn.haier.bio.medical.rsms.entity.recv.RSMSNetworkResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryModulesResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryStatusResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.server.RSMSCommandEntity;
+import cn.haier.bio.medical.rsms.entity.recv.server.RSMSDateTimeEntity;
 import cn.haier.bio.medical.rsms.entity.recv.server.RSMSTransmissionEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
 import cn.qd.peiwen.pwlogger.PWLogger;
+import cn.qd.peiwen.pwtools.ByteUtils;
 import cn.qd.peiwen.pwtools.EmptyUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -21,6 +23,7 @@ public class RSMSTools {
     public static final byte DTE_CONFIG = (byte) 0xB0;
     public static final byte PDA_CONFIG = (byte) 0xB1;
 
+    public static final byte COLLECTION_DATE_TYPE = (byte) 0x84;
     public static final byte COLLECTION_DATA_TYPE = (byte) 0x85;
     public static final byte COLLECTION_EVENT_TYPE = (byte) 0x86;
     public static final byte COLLECTION_CONTROL_COMMAND_TYPE = (byte) 0x87;
@@ -270,17 +273,22 @@ public class RSMSTools {
         byte minute = buffer.readByte();
         byte second = buffer.readByte();
         byte dataType = buffer.readByte();
-        if(COLLECTION_CONTROL_COMMAND_TYPE != dataType){
-            RSMSTransmissionEntity entity = new RSMSTransmissionEntity();
+        if(dataType == COLLECTION_DATE_TYPE){
+            RSMSDateTimeEntity entity = new RSMSDateTimeEntity();
             entity.setYear(year);
             entity.setMonth(month);
             entity.setDay(day);
             entity.setHour(hour);
             entity.setMinute(minute);
             entity.setSecond(second);
+
             entity.setDataType(dataType);
+            entity.setDeviceType(buffer.readShortLE());
+            entity.setProtocolVersion(buffer.readShortLE());
+
+            entity.setTimestamp(buffer.readLongLE());
             return entity;
-        }else{
+        }else if(dataType == COLLECTION_CONTROL_COMMAND_TYPE){
             RSMSCommandEntity entity = new RSMSCommandEntity();
             entity.setYear(year);
             entity.setMonth(month);
@@ -302,9 +310,23 @@ public class RSMSTools {
             buffer.readBytes(control, 0, control.length);
             entity.setControl(control);
             return entity;
+        }else{
+            RSMSTransmissionEntity entity = new RSMSTransmissionEntity();
+            entity.setYear(year);
+            entity.setMonth(month);
+            entity.setDay(day);
+            entity.setHour(hour);
+            entity.setMinute(minute);
+            entity.setSecond(second);
+            entity.setDataType(dataType);
+            return entity;
         }
     }
 
+    public static String command2String(short command){
+        byte[] bytes = ByteUtils.short2Bytes(command);
+        return ByteUtils.bytes2HexString(bytes,true,",");
+    }
     //校验和取低8位算法
     public static byte computeL8SumCode(byte[] data) {
         if (EmptyUtils.isEmpty(data)) {

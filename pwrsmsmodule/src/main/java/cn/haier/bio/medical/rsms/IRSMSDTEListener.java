@@ -16,10 +16,10 @@ public interface IRSMSDTEListener {
     void onClearCacheSuccessed();
     void onDETMacChanged(String mac);
     void onDeviceCodeChanged(String code);
+    void onDateTimeChanged(long timestamp);
     void onControlCommandReceived(RSMSCommandEntity command);
     void onNetworkReceived(RSMSNetworkResponseEntity network);
     void onStatusReceived(RSMSQueryStatusResponseEntity status);
     void onModulesReceived(RSMSQueryModulesResponseEntity modules);
-    void onDateTimeChanged(int year,int month,int day,int hour,int minute,int second);
     boolean checkControlCommand(int deviceType,int protocolVersion,int controlCommand);
 }

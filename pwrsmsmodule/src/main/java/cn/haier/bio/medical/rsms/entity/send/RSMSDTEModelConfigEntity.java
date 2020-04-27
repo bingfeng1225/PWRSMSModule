@@ -22,7 +22,7 @@ public class RSMSDTEModelConfigEntity extends RSMSSendBaseEntity {
     private String apnPassword;//APN密码
 
     public RSMSDTEModelConfigEntity() {
-        super(RSMSTools.RSMS_COMMAND_CONFIG_DTE_MODEL);
+        super((short) RSMSTools.RSMS_COMMAND_CONFIG_DTE_MODEL);
     }
 
     public byte getModel() {

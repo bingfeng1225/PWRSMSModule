@@ -8,6 +8,8 @@ import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
+import java.util.Date;
+
 import androidx.appcompat.app.AppCompatActivity;
 import cn.haier.bio.medical.demo.control.CommandTools;
 import cn.haier.bio.medical.demo.control.recv.TemptureCommandEntity;
@@ -66,28 +68,10 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
             path = "/dev/ttyS4";
         }
 
-        LTBManager.getInstance().init(path);
-        LTBManager.getInstance().changeListener(this);
-        LTBManager.getInstance().enable();
+//        LTBManager.getInstance().init(path);
+//        LTBManager.getInstance().changeListener(this);
+//        LTBManager.getInstance().enable();
 
-        ByteBuf buf = Unpooled.buffer();
-
-
-        int xx = RSMSTools.RSMS_TRANSMISSION_COMMAND;
-        buf.writeShortLE(xx);
-
-        buf.markReaderIndex();
-
-        byte[] data = new byte[buf.readableBytes()];
-        buf.readBytes(data);
-
-        PWLogger.e("data = " + ByteUtils.bytes2HexString(data));
-
-        buf.resetReaderIndex();
-
-        PWLogger.e("xx = " + xx);
-        PWLogger.e("xxx = " + (short) xx);
-        PWLogger.e("xxxx = " + buf.readShortLE());
     }
 
     private void refreshTextView(final String text) {
@@ -251,8 +235,8 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
     }
 
     @Override
-    public void onDateTimeChanged(int year, int month, int day, int hour, int minute, int second) {
-        PWLogger.e("RSMS DateTime:" + (2000 + year) + "-" + month + "-" + day +" "+hour + ":" + minute + ":" + second);
+    public void onDateTimeChanged(long time) {
+        PWLogger.e("RSMS DateTime:" + new Date(time));
     }
 
     @Override
@@ -263,17 +247,110 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
 
     @Override
     public void onNetworkReceived(RSMSNetworkResponseEntity network) {
-        this.refreshTextView(network.toString());
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("联网模式：");
+        int model = network.getModel();
+        if (model == 0x01) {
+            buffer.append("4G\n");
+        } else if (model == 0x02) {
+            buffer.append("Wifi\n");
+        } else {
+            buffer.append("Auto\n");
+        }
+        buffer.append("服务器地址：" + network.getAddress() + ":" + network.getPort() + "\n");
+        if (!EmptyUtils.isEmpty(network.getWifiName())) {
+            buffer.append("Wifi名称：" + network.getWifiName() + "\n");
+            buffer.append("Wifi密码：" + network.getWifiPassword() + "\n");
+        }
+
+        if (!EmptyUtils.isEmpty(network.getApn())) {
+            buffer.append("APN服务：" + network.getApn() + "\n");
+        }
+        this.refreshTextView(buffer.toString());
     }
 
     @Override
     public void onStatusReceived(RSMSQueryStatusResponseEntity status) {
-        this.refreshTextView(status.toString());
+        StringBuilder builder = new StringBuilder();
+        builder.append("联网模式：");
+        int model = status.getModel();
+        if (model == 0x01) {
+            builder.append("4G\n");
+        } else if (model == 0x02) {
+            builder.append("Wifi\n");
+        } else {
+            builder.append("Auto\n");
+        }
+        //状态指示
+        byte state = status.getStatus();
+        builder.append("Sim卡接入状态：");
+        if ((state & 0x04) == 0x04) {
+            builder.append("失败\n");
+        } else {
+            builder.append("成功\n");
+        }
+
+        builder.append("4G联网状态：");
+        if ((state & 0x02) == 0x02) {
+            builder.append("失败\n");
+        } else {
+            builder.append("成功\n");
+        }
+
+        builder.append("4G信号强度：" + status.getLevel() + "\n");
+
+        builder.append("4G连接云平台状态：");
+        if ((state & 0x01) == 0x01) {
+            builder.append("成功\n");
+        } else {
+            builder.append("失败\n");
+        }
+
+        builder.append("Wifi检索状态：");
+        if ((state & 0x20) == 0x20) {
+            builder.append("失败\n");
+        } else {
+            builder.append("成功\n");
+        }
+        builder.append("Wifi认证状态：");
+        if ((state & 0x10) == 0x10) {
+            builder.append("失败\n");
+        } else {
+            builder.append("成功\n");
+        }
+        builder.append("Wifi信号强度：" + status.getWifiLevel() + "\n");
+        builder.append("Wifi连接云平台状态：");
+        if ((state & 0x08) == 0x08) {
+            builder.append("成功\n");
+        } else {
+            builder.append("失败\n");
+        }
+
+        builder.append("模块准备状态：");
+        if ((state & 0x80) == 0x80) {
+            builder.append("成功\n");
+        } else {
+            builder.append("失败\n");
+        }
+        builder.append("数据上传频率：" + status.getUploadFrequency() + "\n");
+        builder.append("数据采集频率：" + status.getAcquisitionFrequency() + "\n");
+        this.refreshTextView(builder.toString());
     }
 
     @Override
     public void onModulesReceived(RSMSQueryModulesResponseEntity modules) {
-        this.refreshTextView(modules.toString());
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("MCU：" + ByteUtils.bytes2HexString(modules.getMcu()) + "\n");
+        buffer.append("MAC：" + ByteUtils.bytes2HexString(modules.getMac()) + "\n");
+        buffer.append("机编：" + modules.getCode() + "\n");
+        buffer.append("IMEI：" + modules.getImei() + "\n");
+        buffer.append("ICCID：" + modules.getIccid() + "\n");
+        buffer.append("SIM卡号码：" + modules.getPhone() + "\n");
+        buffer.append("运营商：" + modules.getOperator() + "\n");
+        buffer.append("MCU版本：" + modules.getMcuVersion() + "\n");
+        buffer.append("Wifi版本：" + modules.getWifiVersion() + "\n");
+        buffer.append("软件版本：" + modules.getModuleVersion() + "\n");
+        this.refreshTextView(buffer.toString());
     }
 
     private void showQRCodeDialog() {
