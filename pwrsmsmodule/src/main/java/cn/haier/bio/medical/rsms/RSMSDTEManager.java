@@ -179,10 +179,16 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         if (EmptyUtils.isEmpty(this.status)) {
             return false;
         }
-        if (System.currentTimeMillis() - this.lastTime < 1000 * this.status.getUploadFrequency()) {
-            return false;
+        if (this.lastTime == 0) {
+            return true;
         }
-        return true;
+        long nonoTime = System.nanoTime();
+        long frequency = this.status.getUploadFrequency() * 1000 * 1000 * 1000;
+        if (nonoTime - this.lastTime < frequency) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     private void createHandler() {
@@ -333,6 +339,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         this.pda = false;
         this.status = null;
         this.tasks.clear();
+        this.lastTime = 0;
         this.dateTime = false;
         this.taskRuning = false;
         this.state = RSMS_STATE_STRTUP;
@@ -345,10 +352,10 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         this.pda = false;
         this.status = null;
         this.tasks.clear();
+        this.lastTime = 0;
         this.dateTime = false;
         this.taskRuning = false;
         this.state = RSMS_STATE_IDLE;
-
         this.stopQuertState();
         this.stopQueryModules();
         this.stopQueryDateTime();
@@ -360,12 +367,12 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         PWLogger.e("查询设备状态成功");
         this.status = status;
         //判断是用户查询还是自动查询，如果是用户查询需要调用接口反馈
-        RSMSQueryStatusEntity entity = (RSMSQueryStatusEntity) sendBase;
         this.commandResponseReceived();
-        if(!this.dateTime && this.isReady()){
+        if (!this.dateTime && this.isReady()) {
             this.dateTime = true;
             this.startQueryDateTime(0);
         }
+        RSMSQueryStatusEntity entity = (RSMSQueryStatusEntity) sendBase;
         if (!entity.isFromUser()) {
             this.startQueryStatus();
         } else {
@@ -390,7 +397,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         PWLogger.e("查询模块参数成功");
         if (this.state == RSMS_STATE_STRTUP) {
             if (this.pda) {
-                if(!this.checkPDAStartupModules(modules)){
+                if (!this.checkPDAStartupModules(modules)) {
                     this.startQueryModules();
                 }
             } else {
@@ -445,8 +452,17 @@ public class RSMSDTEManager extends RSMSSimpleListener {
 
     @Override
     public void onRSMSDataCollectionReceived(RSMSRecvBaseEntity entity) throws IOException {
-        PWLogger.e("采集数据成功");
-        this.lastTime = System.currentTimeMillis();
+        RSMSCollectionEntity collection = (RSMSCollectionEntity) sendBase;
+        if (RSMSTools.COLLECTION_DATE_TYPE == collection.getDataType()) {
+            PWLogger.e("查询服务器时间指令发送成功");
+        } else if (RSMSTools.COLLECTION_DATA_TYPE == collection.getDataType()) {
+            PWLogger.e("设备数据采集成功");
+            this.lastTime = System.nanoTime();
+        } else if (RSMSTools.COLLECTION_EVENT_TYPE == collection.getDataType()) {
+            PWLogger.e("用户操作日志采集成功");
+        } else if (RSMSTools.COLLECTION_CONTROL_RESPONSE_TYPE == collection.getDataType()) {
+            PWLogger.e("远程控制指令执行结果回复成功");
+        }
         //任务处理结束，重置taskRunning标志
         this.commandResponseReceived();
     }

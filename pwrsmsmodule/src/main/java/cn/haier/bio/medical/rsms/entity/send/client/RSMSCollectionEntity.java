@@ -12,6 +12,14 @@ public abstract class RSMSCollectionEntity extends RSMSSendBaseEntity {
         super((short) RSMSTools.RSMS_COMMAND_COLLECTION_DATA);
     }
 
+    public byte getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(byte dataType) {
+        this.dataType = dataType;
+    }
+
     public int getDeviceType() {
         return deviceType;
     }
