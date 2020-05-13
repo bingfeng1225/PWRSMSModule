@@ -183,7 +183,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
             return true;
         }
         long nonoTime = System.nanoTime();
-        long frequency = this.status.getUploadFrequency() * 1000 * 1000 * 1000;
+        long frequency = this.status.getUploadFrequency() * 1000 * 1000 * 1000L;
         if (nonoTime - this.lastTime < frequency) {
             return false;
         } else {
