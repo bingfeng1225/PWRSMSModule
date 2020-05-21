@@ -500,7 +500,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
             case RSMSTools.COLLECTION_DATE_TYPE:
                 RSMSDateTimeEntity date = (RSMSDateTimeEntity) entity;
                 if (EmptyUtils.isNotEmpty(this.listener)) {
-                    this.startQueryDateTime(60);
+                    this.startQueryDateTime(600);
                     this.listener.get().onDateTimeChanged(date.getTimestamp());
                 }
                 break;
