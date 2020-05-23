@@ -77,24 +77,24 @@ public class QRCodeDialog extends Dialog implements DialogInterface.OnDismissLis
                 .subscribe(new ResponseObserver<Bitmap>() {
                     @Override
                     protected void onStart() {
-                        PWLogger.e("开始生成二维码");
+                        PWLogger.d("开始生成二维码");
                     }
 
                     @Override
                     protected void onSuccess(Bitmap entity) {
-                        PWLogger.e("开始生成二维码成功");
+                        PWLogger.d("开始生成二维码成功");
                         bitmap = entity;
                         qr_code_image.setImageBitmap(entity);
                     }
 
                     @Override
                     protected void onFailure(Throwable e) {
-                        PWLogger.e("开始生成二维码失败");
+                        PWLogger.d("开始生成二维码失败");
                     }
 
                     @Override
                     protected void onCompleted() {
-                        PWLogger.e("开始生成二维码完毕");
+                        PWLogger.d("开始生成二维码完毕");
                     }
                 });
     }

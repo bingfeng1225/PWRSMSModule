@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
 
     @Override
     public void onDateTimeChanged(long time) {
-        PWLogger.e("RSMS DateTime:" + new Date(time));
+        PWLogger.d("RSMS DateTime:" + new Date(time));
     }
 
     @Override

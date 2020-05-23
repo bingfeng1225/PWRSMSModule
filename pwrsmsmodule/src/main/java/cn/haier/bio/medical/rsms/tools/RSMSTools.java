@@ -372,7 +372,7 @@ public class RSMSTools {
             }
             return null;
         } catch (Exception e) {
-            PWLogger.e(e);
+            PWLogger.d(e);
             return null;
         }
     }

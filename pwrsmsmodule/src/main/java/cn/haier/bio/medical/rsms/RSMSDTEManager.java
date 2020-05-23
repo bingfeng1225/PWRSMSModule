@@ -286,11 +286,11 @@ public class RSMSDTEManager extends RSMSSimpleListener {
             //已进入PDA配置模式，还未获取到有效的MAC地址
             String mac = ByteUtils.bytes2HexString(modules.getMac());
             if (mac.equals("FFFFFFFFFFFF")) {
-                PWLogger.e("未获取到模块的MAC地址");
+                PWLogger.d("未获取到模块的MAC地址");
                 return false;
             } else {
                 this.dceMac = mac;
-                PWLogger.e("已获取到模块的MAC地址：" + this.dceMac);
+                PWLogger.d("已获取到模块的MAC地址：" + this.dceMac);
                 //已进入PDA配置模式，还未获取到有效的MAC地址
                 if (EmptyUtils.isNotEmpty(this.listener)) {
                     this.listener.get().onDETMacChanged(this.dceMac);
@@ -301,14 +301,14 @@ public class RSMSDTEManager extends RSMSSimpleListener {
             //已进入PDA配置模式，循环判断是否已经配置新的BE码
             String code = modules.getCode();
             if (EmptyUtils.isEmpty(code) || "BEFFFFFFFFFFFFFFFFFF".equals(code)) {
-                PWLogger.e("模块的BE码未配置");
+                PWLogger.d("模块的BE码未配置");
                 return false;
             } else {
-                PWLogger.e("模块的BE码已经配置完成：" + code);
+                PWLogger.d("模块的BE码已经配置完成：" + code);
                 if (EmptyUtils.isNotEmpty(this.listener)) {
                     this.listener.get().onDeviceCodeChanged(code);
                 }
-                PWLogger.e("退出配置模式");
+                PWLogger.d("退出配置模式");
                 this.quitConfigModel();
                 return true;
             }
@@ -325,11 +325,11 @@ public class RSMSDTEManager extends RSMSSimpleListener {
             //一致：查询设备状态
             this.startQueryStatus();
             this.state = RSMS_STATE_RUNNING;
-            PWLogger.e("本地BE码与模块参数一致，进入正常运行模式");
+            PWLogger.d("本地BE码与模块参数一致，进入正常运行模式");
         } else {
             //不一致：进入PDA配置模式
             this.dceMac = null;
-            PWLogger.e("本地BE码与模块参数不一致，进入PDA配置模式");
+            PWLogger.d("本地BE码与模块参数不一致，进入PDA配置模式");
             this.enterPDAConfigModel();
         }
     }
@@ -343,7 +343,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         this.dateTime = false;
         this.taskRuning = false;
         this.state = RSMS_STATE_STRTUP;
-        PWLogger.e("连接成功查询模块参数，开启启动流程判断");
+        PWLogger.d("连接成功查询模块参数，开启启动流程判断");
         this.queryModules();
     }
 
@@ -359,12 +359,12 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         this.stopQuertState();
         this.stopQueryModules();
         this.stopQueryDateTime();
-        PWLogger.e("RSMS exception........");
+        PWLogger.d("RSMS exception........");
     }
 
     @Override
     public void onRSMSStatusReceived(RSMSQueryStatusResponseEntity status) throws IOException {
-        PWLogger.e("查询设备状态成功");
+        PWLogger.d("查询设备状态成功");
         this.status = status;
         //判断是用户查询还是自动查询，如果是用户查询需要调用接口反馈
         this.commandResponseReceived();
@@ -384,7 +384,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
 
     @Override
     public void onRSMSNetworkReceived(RSMSNetworkResponseEntity network) throws IOException {
-        PWLogger.e("查询联网参数成功");
+        PWLogger.d("查询联网参数成功");
         if (EmptyUtils.isNotEmpty(this.listener)) {
             this.listener.get().onNetworkReceived(network);
         }
@@ -394,7 +394,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
 
     @Override
     public void onRSMSModulesReceived(RSMSQueryModulesResponseEntity modules) throws IOException {
-        PWLogger.e("查询模块参数成功");
+        PWLogger.d("查询模块参数成功");
         if (this.state == RSMS_STATE_STRTUP) {
             if (this.pda) {
                 if (!this.checkPDAStartupModules(modules)) {
@@ -416,14 +416,14 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     public void onRSMSEnterConfigReceived(RSMSEnterConfigResponseEntity response) throws IOException {
         if (response.getConfigModel() == (byte) 0xB0) {
             this.dte = true;
-            PWLogger.e("进入串口配置成功");
+            PWLogger.d("进入串口配置成功");
             if (EmptyUtils.isNotEmpty(this.listener)) {
                 this.listener.get().onDTEConfigEntered();
             }
         } else {
             this.pda = true;
             this.clearCache();
-            PWLogger.e("进入PDA配置成功,清空模块缓存数据");
+            PWLogger.d("进入PDA配置成功,清空模块缓存数据");
             if (EmptyUtils.isNotEmpty(this.listener)) {
                 this.listener.get().onPDAConfigEntered();
             }
@@ -436,13 +436,13 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     public void onRSMSQuitConfigReceived(RSMSResponseEntity response) throws IOException {
         if (this.pda) {
             this.pda = false;
-            PWLogger.e("退出PDA配置成功");
+            PWLogger.d("退出PDA配置成功");
             if (EmptyUtils.isNotEmpty(this.listener)) {
                 this.listener.get().onPDAConfigQuited();
             }
         } else if (this.dte) {
             this.dte = false;
-            PWLogger.e("退出DTE配置成功");
+            PWLogger.d("退出DTE配置成功");
             if (EmptyUtils.isNotEmpty(this.listener)) {
                 this.listener.get().onDTEConfigQuited();
             }
@@ -454,14 +454,14 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     public void onRSMSDataCollectionReceived(RSMSRecvBaseEntity entity) throws IOException {
         RSMSCollectionEntity collection = (RSMSCollectionEntity) sendBase;
         if (RSMSTools.COLLECTION_DATE_TYPE == collection.getDataType()) {
-            PWLogger.e("查询服务器时间指令发送成功");
+            PWLogger.d("查询服务器时间指令发送成功");
         } else if (RSMSTools.COLLECTION_DATA_TYPE == collection.getDataType()) {
-            PWLogger.e("设备数据采集成功");
+            PWLogger.d("设备数据采集成功");
             this.lastTime = System.nanoTime();
         } else if (RSMSTools.COLLECTION_EVENT_TYPE == collection.getDataType()) {
-            PWLogger.e("用户操作日志采集成功");
+            PWLogger.d("用户操作日志采集成功");
         } else if (RSMSTools.COLLECTION_CONTROL_RESPONSE_TYPE == collection.getDataType()) {
-            PWLogger.e("远程控制指令执行结果回复成功");
+            PWLogger.d("远程控制指令执行结果回复成功");
         }
         //任务处理结束，重置taskRunning标志
         this.commandResponseReceived();
@@ -469,7 +469,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
 
     @Override
     public void onRSMSClearCacheReceived(RSMSResponseEntity response) throws IOException {
-        PWLogger.e("清空本地缓存成功");
+        PWLogger.d("清空本地缓存成功");
         if (this.state == RSMS_STATE_STRTUP) {
             this.startQueryModules();
         } else {
@@ -483,7 +483,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
 
     @Override
     public void onRSMSRecoveryReceived(RSMSResponseEntity response) throws IOException {
-        PWLogger.e("恢复出厂设置成功");
+        PWLogger.d("恢复出厂设置成功");
         this.quitConfigModel();
         if (EmptyUtils.isNotEmpty(this.listener)) {
             this.listener.get().onRecoverySuccessed();
@@ -509,7 +509,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                 int deviceType = command.getDeviceType();
                 int controlCommand = command.getCommand();
                 int protocolVersion = command.getProtocolVersion();
-                PWLogger.e("接收到控制指令透传信息:{deviceType:" + deviceType + ", protocolVersion:" + protocolVersion + ",controlCommand:" + controlCommand + "}");
+                PWLogger.d("接收到控制指令透传信息:{deviceType:" + deviceType + ", protocolVersion:" + protocolVersion + ",controlCommand:" + controlCommand + "}");
                 if (EmptyUtils.isNotEmpty(this.listener)) {
                     if (this.listener.get().checkControlCommand(deviceType, protocolVersion, controlCommand)) {
                         this.listener.get().onControlCommandReceived(command);
@@ -521,7 +521,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                 }
                 break;
             default:
-                PWLogger.e("接收到无法处理的透传信息");
+                PWLogger.d("接收到无法处理的透传信息");
                 break;
         }
     }
@@ -537,21 +537,21 @@ public class RSMSDTEManager extends RSMSSimpleListener {
             switch (msg.what) {
                 case RSMS_INSERT_TASK_MSG:
                     RSMSSendBaseEntity send = (RSMSSendBaseEntity) msg.obj;
-                    PWLogger.e("添加一个新的任务:" + RSMSTools.command2String(send.getCommandType()));
+                    PWLogger.d("添加一个新的任务:" + RSMSTools.command2String(send.getCommandType()));
                     tasks.add(send);
                     sendEmptyMessage(RSMS_PROCESS_TASK_MSG);
                     break;
                 case RSMS_PROCESS_TASK_MSG:
                     if (!isInitialized()) {
-                        PWLogger.e("对象已销毁，无法处理，跳过....");
+                        PWLogger.d("对象已销毁，无法处理，跳过....");
                         break;
                     }
                     if (state == RSMS_STATE_IDLE) {
-                        PWLogger.e("串口连接中断，无法处理，跳过....");
+                        PWLogger.d("串口连接中断，无法处理，跳过....");
                         break;
                     }
                     if (EmptyUtils.isEmpty(tasks)) {
-                        PWLogger.e("队列为空，无需处理, 跳过....");
+                        PWLogger.d("队列为空，无需处理, 跳过....");
                         break;
                     }
                     if (taskRuning) {
@@ -559,14 +559,14 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                     }
                     taskRuning = true;
                     sendBase = tasks.get(0);
-                    PWLogger.e("开始处理指令：" + RSMSTools.command2String(sendBase.getCommandType()));
+                    PWLogger.d("开始处理指令：" + RSMSTools.command2String(sendBase.getCommandType()));
                     serialPort.sendCommand(sendBase);
                     if (!sendBase.isNeedResponse()) {
                         sendEmptyMessageDelayed(RSMS_FINISH_TASK_MSG, 100);
                     }
                     break;
                 case RSMS_FINISH_TASK_MSG:
-                    PWLogger.e("任务处理结束:" + RSMSTools.command2String(sendBase.getCommandType()));
+                    PWLogger.d("任务处理结束:" + RSMSTools.command2String(sendBase.getCommandType()));
                     taskRuning = false;
                     if (EmptyUtils.isNotEmpty(tasks)) {
                         tasks.remove(0);
@@ -575,7 +575,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                     break;
                 case RSMS_QUERY_STATE_MSG:
                     if (state != RSMS_STATE_RUNNING) {
-                        PWLogger.e("非运行模式，无需查询设备状态");
+                        PWLogger.d("非运行模式，无需查询设备状态");
                         break;
                     }
                     String code = null;
@@ -591,14 +591,14 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                     break;
                 case RSMS_QUERY_MODULES_MSG:
                     if (state != RSMS_STATE_STRTUP) {
-                        PWLogger.e("非启动模式，无需查询模块参数");
+                        PWLogger.d("非启动模式，无需查询模块参数");
                         break;
                     }
                     RSMSDTEManager.this.queryModules();
                     break;
                 case RSMS_QUERY_DATE_TIME_MSG:
                     if (state != RSMS_STATE_RUNNING) {
-                        PWLogger.e("非运行模式，无法查询服务器时间");
+                        PWLogger.d("非运行模式，无法查询服务器时间");
                         break;
                     }
                     RSMSDTEManager.this.insertTask(new RSMSDateTimeCollectionEntity());
