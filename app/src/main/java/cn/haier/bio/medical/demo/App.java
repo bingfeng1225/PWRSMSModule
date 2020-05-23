@@ -2,6 +2,8 @@ package cn.haier.bio.medical.demo;
 
 import android.app.Application;
 
+import androidx.multidex.MultiDexApplication;
+
 import org.apache.log4j.Level;
 
 import java.io.File;
@@ -9,7 +11,7 @@ import java.io.File;
 import cn.qd.peiwen.pwlogger.PWConfigurator;
 
 
-public class App extends Application {
+public class App extends MultiDexApplication {
     @Override
     public void onCreate() {
         super.onCreate();

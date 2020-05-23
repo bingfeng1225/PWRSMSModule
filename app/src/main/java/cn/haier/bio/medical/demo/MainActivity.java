@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
         this.textView = findViewById(R.id.text);
         this.textView.setMovementMethod(ScrollingMovementMethod.getInstance());
 
-        String path = "/dev/ttyS5";
+        String path = "/dev/ttyS4";
         if (!"magton".equals(Build.MODEL)) {
             path = "/dev/ttyS1";
         }
@@ -63,10 +63,10 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
         RSMSDTEManager.getInstance().changeListener(this);
         RSMSDTEManager.getInstance().enable();
 
-        path = "/dev/ttyS2";
-        if (!"magton".equals(Build.MODEL)) {
-            path = "/dev/ttyS4";
-        }
+//        path = "/dev/ttyS5";
+//        if (!"magton".equals(Build.MODEL)) {
+//            path = "/dev/ttyS4";
+//        }
 
 //        LTBManager.getInstance().init(path);
 //        LTBManager.getInstance().changeListener(this);

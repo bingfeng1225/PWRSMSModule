@@ -4,12 +4,12 @@ package cn.haier.bio.medical.rsms.serialport;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
-import cn.haier.bio.medical.rsms.entity.recv.RSMSResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSEnterConfigResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSNetworkResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryModulesResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryStatusResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSRecvBaseEntity;
+import cn.haier.bio.medical.rsms.entity.recv.RSMSResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.server.RSMSTransmissionEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
 import cn.haier.bio.medical.rsms.serialport.listener.IRSMSListener;
@@ -95,7 +95,7 @@ public class RSMSSerialPort implements PWSerialPortListener {
             this.helper = new PWSerialPortHelper("RSMSSerialPort");
             this.helper.setPath(path);
             this.helper.setTimeout(10);
-            this.helper.setBaudrate(115200);
+            this.helper.setBaudrate(9600);
             this.helper.init(this);
         }
     }
