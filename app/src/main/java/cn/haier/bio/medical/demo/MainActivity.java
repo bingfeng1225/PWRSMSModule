@@ -24,7 +24,7 @@ import cn.haier.bio.medical.rsms.IRSMSDTEListener;
 import cn.haier.bio.medical.rsms.entity.recv.server.RSMSCommandEntity;
 import cn.haier.bio.medical.rsms.RSMSDTEManager;
 import cn.haier.bio.medical.rsms.entity.send.client.RSMSOperationCollectionEntity;
-import cn.qd.peiwen.pwlogger.PWLogger;
+import cn.qd.peiwen.logger.PWLogger;
 import cn.qd.peiwen.pwtools.ByteUtils;
 import cn.qd.peiwen.pwtools.EmptyUtils;
 import cn.qd.peiwen.serialport.PWSerialPort;
@@ -57,16 +57,6 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
         RSMSDTEManager.getInstance().init(path);
         RSMSDTEManager.getInstance().changeListener(this);
         RSMSDTEManager.getInstance().enable();
-
-//        path = "/dev/ttyS5";
-//        if (!"magton".equals(Build.MODEL)) {
-//            path = "/dev/ttyS4";
-//        }
-
-//        LTBManager.getInstance().init(path);
-//        LTBManager.getInstance().changeListener(this);
-//        LTBManager.getInstance().enable();
-
     }
 
     private void refreshTextView(final String text) {
@@ -202,6 +192,16 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
     }
 
     @Override
+    public void onDTEPrint(String message) {
+        PWLogger.debug("" + message);
+    }
+
+    @Override
+    public void onDTEException(Throwable throwable) {
+        PWLogger.error(throwable);
+    }
+
+    @Override
     public void onDeviceCodeChanged(String code) {
         this.code = code;
         SharedPreferences sp = this.getSharedPreferences("Demo", 0);
@@ -231,7 +231,7 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
 
     @Override
     public void onDateTimeChanged(long time) {
-        PWLogger.d("RSMS DateTime:" + new Date(time));
+        PWLogger.debug("RSMS DateTime:" + new Date(time));
     }
 
     @Override

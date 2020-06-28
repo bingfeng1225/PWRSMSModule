@@ -14,9 +14,11 @@ public interface IRSMSDTEListener {
     void onPDAConfigEntered();
     void onRecoverySuccessed();
     void onClearCacheSuccessed();
+    void onDTEPrint(String message);
     void onDETMacChanged(String mac);
     void onDeviceCodeChanged(String code);
     void onDateTimeChanged(long timestamp);
+    void onDTEException(Throwable throwable);
     void onControlCommandReceived(RSMSCommandEntity command);
     void onNetworkReceived(RSMSNetworkResponseEntity network);
     void onStatusReceived(RSMSQueryStatusResponseEntity status);

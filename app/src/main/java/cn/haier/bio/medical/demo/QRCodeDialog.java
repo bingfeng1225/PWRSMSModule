@@ -19,7 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import androidx.annotation.NonNull;
-import cn.qd.peiwen.pwlogger.PWLogger;
+
+import cn.qd.peiwen.logger.PWLogger;
 import cn.qd.peiwen.pwnetworkinterface.http.ResponseObserver;
 import cn.qd.peiwen.pwnetworkinterface.http.transformer.ThreadTransformer;
 import cn.qd.peiwen.pwtools.EmptyUtils;
@@ -77,24 +78,24 @@ public class QRCodeDialog extends Dialog implements DialogInterface.OnDismissLis
                 .subscribe(new ResponseObserver<Bitmap>() {
                     @Override
                     protected void onStart() {
-                        PWLogger.d("开始生成二维码");
+                        PWLogger.debug("开始生成二维码");
                     }
 
                     @Override
                     protected void onSuccess(Bitmap entity) {
-                        PWLogger.d("开始生成二维码成功");
+                        PWLogger.debug("开始生成二维码成功");
                         bitmap = entity;
                         qr_code_image.setImageBitmap(entity);
                     }
 
                     @Override
                     protected void onFailure(Throwable e) {
-                        PWLogger.d("开始生成二维码失败");
+                        PWLogger.debug("开始生成二维码失败");
                     }
 
                     @Override
                     protected void onCompleted() {
-                        PWLogger.d("开始生成二维码完毕");
+                        PWLogger.debug("开始生成二维码完毕");
                     }
                 });
     }

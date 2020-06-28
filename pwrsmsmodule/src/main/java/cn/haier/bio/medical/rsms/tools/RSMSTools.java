@@ -12,7 +12,6 @@ import cn.haier.bio.medical.rsms.entity.recv.server.RSMSCommandEntity;
 import cn.haier.bio.medical.rsms.entity.recv.server.RSMSDateTimeEntity;
 import cn.haier.bio.medical.rsms.entity.recv.server.RSMSTransmissionEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
-import cn.qd.peiwen.pwlogger.PWLogger;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
@@ -432,7 +431,7 @@ public class RSMSTools {
             }
             return null;
         } catch (Exception e) {
-            PWLogger.d(e);
+            e.printStackTrace();
             return null;
         }
     }

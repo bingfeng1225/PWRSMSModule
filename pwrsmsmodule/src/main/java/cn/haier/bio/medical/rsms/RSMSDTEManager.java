@@ -29,7 +29,6 @@ import cn.haier.bio.medical.rsms.entity.send.client.RSMSDateTimeCollectionEntity
 import cn.haier.bio.medical.rsms.serialport.RSMSSerialPort;
 import cn.haier.bio.medical.rsms.serialport.listener.IRSMSListener;
 import cn.haier.bio.medical.rsms.tools.RSMSTools;
-import cn.qd.peiwen.pwlogger.PWLogger;
 
 public class RSMSDTEManager implements IRSMSListener {
     private byte[] mac;
@@ -284,11 +283,11 @@ public class RSMSDTEManager implements IRSMSListener {
             //已进入PDA配置模式，还未获取到有效的MAC地址
             String mac = RSMSTools.bytes2HexString(modules.getMac());
             if (mac.equals("FFFFFFFFFFFF")) {
-                PWLogger.d("未获取到模块的MAC地址");
+                this.onRSMSPrint("RSMSDTEManager 未获取到模块的MAC地址");
                 return false;
             } else {
                 this.dceMac = mac;
-                PWLogger.d("已获取到模块的MAC地址：" + this.dceMac);
+                this.onRSMSPrint("RSMSDTEManager 已获取到模块的MAC地址：" + this.dceMac);
                 //已进入PDA配置模式，还未获取到有效的MAC地址
                 if (null != this.listener && null != this.listener.get()) {
                     this.listener.get().onDETMacChanged(this.dceMac);
@@ -299,14 +298,14 @@ public class RSMSDTEManager implements IRSMSListener {
             //已进入PDA配置模式，循环判断是否已经配置新的BE码
             String code = modules.getCode();
             if (code == null || "BEFFFFFFFFFFFFFFFFFF".equals(code)) {
-                PWLogger.d("模块的BE码未配置");
+                this.onRSMSPrint("RSMSDTEManager 模块的BE码未配置");
                 return false;
             } else {
-                PWLogger.d("模块的BE码已经配置完成：" + code);
+                this.onRSMSPrint("RSMSDTEManager 模块的BE码已经配置完成：" + code);
                 if (null != this.listener && null != this.listener.get()) {
                     this.listener.get().onDeviceCodeChanged(code);
                 }
-                PWLogger.d("退出配置模式");
+                this.onRSMSPrint("RSMSDTEManager 退出配置模式");
                 this.quitConfigModel();
                 return true;
             }
@@ -323,11 +322,11 @@ public class RSMSDTEManager implements IRSMSListener {
             //一致：查询设备状态
             this.startQueryStatus();
             this.state = RSMS_STATE_RUNNING;
-            PWLogger.d("本地BE码与模块参数一致，进入正常运行模式");
+            this.onRSMSPrint("RSMSDTEManager 本地BE码与模块参数一致，进入正常运行模式");
         } else {
             //不一致：进入PDA配置模式
             this.dceMac = null;
-            PWLogger.d("本地BE码与模块参数不一致，进入PDA配置模式");
+            this.onRSMSPrint("RSMSDTEManager 本地BE码与模块参数不一致，进入PDA配置模式");
             this.enterPDAConfigModel();
         }
     }
@@ -341,13 +340,15 @@ public class RSMSDTEManager implements IRSMSListener {
         this.dateTime = false;
         this.taskRuning = false;
         this.state = RSMS_STATE_STRTUP;
-        PWLogger.d("连接成功查询模块参数，开启启动流程判断");
+        this.onRSMSPrint("RSMSDTEManager 连接成功查询模块参数，开启启动流程判断");
         this.queryModules();
     }
 
     @Override
     public void onRSMSPrint(String message){
-
+        if (null != this.listener && null != this.listener.get()) {
+            this.listener.get().onDTEPrint(message);
+        }
     }
 
     @Override
@@ -362,13 +363,15 @@ public class RSMSDTEManager implements IRSMSListener {
         this.stopQuertState();
         this.stopQueryModules();
         this.stopQueryDateTime();
-        PWLogger.d("RSMS exception........");
+        if (null != this.listener && null != this.listener.get()) {
+            this.listener.get().onDTEException(throwable);
+        }
     }
 
     @Override
     public void onRSMSStatusReceived(RSMSQueryStatusResponseEntity status) throws IOException {
-        PWLogger.d("查询设备状态成功");
         this.status = status;
+        this.onRSMSPrint("RSMSDTEManager 查询设备状态成功");
         //判断是用户查询还是自动查询，如果是用户查询需要调用接口反馈
         this.commandResponseReceived();
         if (!this.dateTime && this.isReady()) {
@@ -387,7 +390,7 @@ public class RSMSDTEManager implements IRSMSListener {
 
     @Override
     public void onRSMSNetworkReceived(RSMSNetworkResponseEntity network) throws IOException {
-        PWLogger.d("查询联网参数成功");
+        this.onRSMSPrint("RSMSDTEManager 查询联网参数成功");
         if (null != this.listener && null != this.listener.get()) {
             this.listener.get().onNetworkReceived(network);
         }
@@ -397,7 +400,7 @@ public class RSMSDTEManager implements IRSMSListener {
 
     @Override
     public void onRSMSModulesReceived(RSMSQueryModulesResponseEntity modules) throws IOException {
-        PWLogger.d("查询模块参数成功");
+        this.onRSMSPrint("RSMSDTEManager 查询模块参数成功");
         if (this.state == RSMS_STATE_STRTUP) {
             if (this.pda) {
                 if (!this.checkPDAStartupModules(modules)) {
@@ -419,14 +422,14 @@ public class RSMSDTEManager implements IRSMSListener {
     public void onRSMSEnterConfigReceived(RSMSEnterConfigResponseEntity response) throws IOException {
         if (response.getConfigModel() == (byte) 0xB0) {
             this.dte = true;
-            PWLogger.d("进入串口配置成功");
+            this.onRSMSPrint("RSMSDTEManager 进入串口配置成功");
             if (null != this.listener && null != this.listener.get()) {
                 this.listener.get().onDTEConfigEntered();
             }
         } else {
             this.pda = true;
             this.clearCache();
-            PWLogger.d("进入PDA配置成功,清空模块缓存数据");
+            this.onRSMSPrint("RSMSDTEManager 进入PDA配置成功,清空模块缓存数据");
             if (null != this.listener && null != this.listener.get()) {
                 this.listener.get().onPDAConfigEntered();
             }
@@ -439,13 +442,13 @@ public class RSMSDTEManager implements IRSMSListener {
     public void onRSMSQuitConfigReceived(RSMSResponseEntity response) throws IOException {
         if (this.pda) {
             this.pda = false;
-            PWLogger.d("退出PDA配置成功");
+            this.onRSMSPrint("RSMSDTEManager 退出PDA配置成功");
             if (null != this.listener && null != this.listener.get()) {
                 this.listener.get().onPDAConfigQuited();
             }
         } else if (this.dte) {
             this.dte = false;
-            PWLogger.d("退出DTE配置成功");
+            this.onRSMSPrint("RSMSDTEManager 退出DTE配置成功");
             if (null != this.listener && null != this.listener.get()) {
                 this.listener.get().onDTEConfigQuited();
             }
@@ -457,14 +460,14 @@ public class RSMSDTEManager implements IRSMSListener {
     public void onRSMSDataCollectionReceived(RSMSRecvBaseEntity entity) throws IOException {
         RSMSCollectionEntity collection = (RSMSCollectionEntity) sendBase;
         if (RSMSTools.COLLECTION_DATE_TYPE == collection.getDataType()) {
-            PWLogger.d("查询服务器时间指令发送成功");
+            this.onRSMSPrint("RSMSDTEManager 查询服务器时间指令发送成功");
         } else if (RSMSTools.COLLECTION_DATA_TYPE == collection.getDataType()) {
-            PWLogger.d("设备数据采集成功");
             this.lastTime = System.nanoTime();
+            this.onRSMSPrint("RSMSDTEManager 设备数据采集成功");
         } else if (RSMSTools.COLLECTION_EVENT_TYPE == collection.getDataType()) {
-            PWLogger.d("用户操作日志采集成功");
+            this.onRSMSPrint("RSMSDTEManager 用户操作日志采集成功");
         } else if (RSMSTools.COLLECTION_CONTROL_RESPONSE_TYPE == collection.getDataType()) {
-            PWLogger.d("远程控制指令执行结果回复成功");
+            this.onRSMSPrint("RSMSDTEManager 远程控制指令执行结果回复成功");
         }
         //任务处理结束，重置taskRunning标志
         this.commandResponseReceived();
@@ -472,7 +475,7 @@ public class RSMSDTEManager implements IRSMSListener {
 
     @Override
     public void onRSMSClearCacheReceived(RSMSResponseEntity response) throws IOException {
-        PWLogger.d("清空本地缓存成功");
+        this.onRSMSPrint("RSMSDTEManager 清空本地缓存成功");
         if (this.state == RSMS_STATE_STRTUP) {
             this.startQueryModules();
         } else {
@@ -486,7 +489,7 @@ public class RSMSDTEManager implements IRSMSListener {
 
     @Override
     public void onRSMSRecoveryReceived(RSMSResponseEntity response) throws IOException {
-        PWLogger.d("恢复出厂设置成功");
+        this.onRSMSPrint("RSMSDTEManager 恢复出厂设置成功");
         this.quitConfigModel();
         if (null != this.listener && null != this.listener.get()) {
             this.listener.get().onRecoverySuccessed();
@@ -517,7 +520,7 @@ public class RSMSDTEManager implements IRSMSListener {
                 int deviceType = command.getDeviceType();
                 int controlCommand = command.getCommand();
                 int protocolVersion = command.getProtocolVersion();
-                PWLogger.d("接收到控制指令透传信息:{deviceType:" + deviceType + ", protocolVersion:" + protocolVersion + ",controlCommand:" + controlCommand + "}");
+                this.onRSMSPrint("RSMSDTEManager 接收到控制指令透传信息:{deviceType:" + deviceType + ", protocolVersion:" + protocolVersion + ",controlCommand:" + controlCommand + "}");
                 if (null != this.listener && null != this.listener.get()) {
                     if (this.listener.get().checkControlCommand(deviceType, protocolVersion, controlCommand)) {
                         this.listener.get().onControlCommandReceived(command);
@@ -529,7 +532,7 @@ public class RSMSDTEManager implements IRSMSListener {
                 }
                 break;
             default:
-                PWLogger.d("接收到无法处理的透传信息");
+                this.onRSMSPrint("RSMSDTEManager 接收到无法处理的透传信息");
                 break;
         }
     }
@@ -547,21 +550,21 @@ public class RSMSDTEManager implements IRSMSListener {
             switch (msg.what) {
                 case RSMS_INSERT_TASK_MSG:
                     RSMSSendBaseEntity send = (RSMSSendBaseEntity) msg.obj;
-                    PWLogger.d("添加一个新的任务:" + RSMSTools.command2String(send.getCommandType()));
+                    onRSMSPrint("RSMSDTEManager 添加一个新的任务:" + RSMSTools.command2String(send.getCommandType()));
                     tasks.add(send);
                     sendEmptyMessage(RSMS_PROCESS_TASK_MSG);
                     break;
                 case RSMS_PROCESS_TASK_MSG:
                     if (!isInitialized()) {
-                        PWLogger.d("对象已销毁，无法处理，跳过....");
+                        onRSMSPrint("RSMSDTEManager 对象已销毁，无法处理，跳过....");
                         break;
                     }
                     if (state == RSMS_STATE_IDLE) {
-                        PWLogger.d("串口连接中断，无法处理，跳过....");
+                        onRSMSPrint("RSMSDTEManager 串口连接中断，无法处理，跳过....");
                         break;
                     }
                     if (tasks == null || tasks.isEmpty()) {
-                        PWLogger.d("队列为空，无需处理, 跳过....");
+                        onRSMSPrint("RSMSDTEManager 队列为空，无需处理, 跳过....");
                         break;
                     }
                     if (taskRuning) {
@@ -569,14 +572,14 @@ public class RSMSDTEManager implements IRSMSListener {
                     }
                     taskRuning = true;
                     sendBase = tasks.get(0);
-                    PWLogger.d("开始处理指令：" + RSMSTools.command2String(sendBase.getCommandType()));
+                    onRSMSPrint("RSMSDTEManager 处理指令开始：" + RSMSTools.command2String(sendBase.getCommandType()));
                     serialPort.sendCommand(sendBase);
                     if (!sendBase.isNeedResponse()) {
                         sendEmptyMessageDelayed(RSMS_FINISH_TASK_MSG, 100);
                     }
                     break;
                 case RSMS_FINISH_TASK_MSG:
-                    PWLogger.d("任务处理结束:" + RSMSTools.command2String(sendBase.getCommandType()));
+                    onRSMSPrint("RSMSDTEManager 任务处理结束:" + RSMSTools.command2String(sendBase.getCommandType()));
                     taskRuning = false;
                     if (null != tasks && !tasks.isEmpty()) {
                         tasks.remove(0);
@@ -585,7 +588,7 @@ public class RSMSDTEManager implements IRSMSListener {
                     break;
                 case RSMS_QUERY_STATE_MSG:
                     if (state != RSMS_STATE_RUNNING) {
-                        PWLogger.d("非运行模式，无需查询设备状态");
+                        onRSMSPrint("RSMSDTEManager 非运行模式，无需查询设备状态");
                         break;
                     }
                     String code = null;
@@ -601,14 +604,14 @@ public class RSMSDTEManager implements IRSMSListener {
                     break;
                 case RSMS_QUERY_MODULES_MSG:
                     if (state != RSMS_STATE_STRTUP) {
-                        PWLogger.d("非启动模式，无需查询模块参数");
+                        onRSMSPrint("RSMSDTEManager 非启动模式，无需查询模块参数");
                         break;
                     }
                     RSMSDTEManager.this.queryModules();
                     break;
                 case RSMS_QUERY_DATE_TIME_MSG:
                     if (state != RSMS_STATE_RUNNING) {
-                        PWLogger.d("非运行模式，无法查询服务器时间");
+                        onRSMSPrint("RSMSDTEManager 非运行模式，无法查询服务器时间");
                         break;
                     }
                     RSMSDTEManager.this.insertTask(new RSMSDateTimeCollectionEntity());
