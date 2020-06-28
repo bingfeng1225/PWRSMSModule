@@ -127,6 +127,16 @@ public class RSMSSerialPort implements PWSerialPortListener {
     }
 
     @Override
+    public void onReadThreadReleased(PWSerialPortHelper helper) {
+        if (!this.isInitialized() || !helper.equals(this.helper)) {
+            return;
+        }
+        if (null != this.listener && null != this.listener.get()) {
+            this.listener.get().onRSMSPrint("RSMSSerialPort read thread released");
+        }
+    }
+
+    @Override
     public void onException(PWSerialPortHelper helper,Throwable throwable) {
         if (!this.isInitialized() || !helper.equals(this.helper)) {
             return;
@@ -137,14 +147,10 @@ public class RSMSSerialPort implements PWSerialPortListener {
     }
 
     @Override
-    public void onReadThreadReleased(PWSerialPortHelper helper) {
-        if (null != this.listener && null != this.listener.get()) {
-            this.listener.get().onRSMSPrint("RSMSSerialPort read thread released");
-        }
-    }
-
-    @Override
     public void onStateChanged(PWSerialPortHelper helper, PWSerialPortState state) {
+        if (!this.isInitialized() || !helper.equals(this.helper)) {
+            return;
+        }
         if (null != this.listener && null != this.listener.get()) {
             this.listener.get().onRSMSPrint("RSMSSerialPort state changed: " + state.name());
         }
