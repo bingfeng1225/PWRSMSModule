@@ -1,7 +1,6 @@
 package cn.haier.bio.medical.rsms.entity.send.client;
 
 import cn.haier.bio.medical.rsms.tools.RSMSTools;
-import cn.qd.peiwen.pwtools.EmptyUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 

@@ -16,7 +16,6 @@ import cn.haier.bio.medical.demo.control.recv.TemptureCommandEntity;
 import cn.haier.bio.medical.demo.control.send.LTBCollectionEntity;
 import cn.haier.bio.medical.demo.control.send.TemptureResonseEntity;
 import cn.haier.bio.medical.ltb.ILTBListener;
-import cn.haier.bio.medical.ltb.LTBManager;
 import cn.haier.bio.medical.ltb.entity.LTBDataEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSNetworkResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryModulesResponseEntity;
@@ -24,15 +23,11 @@ import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryStatusResponseEntity;
 import cn.haier.bio.medical.rsms.IRSMSDTEListener;
 import cn.haier.bio.medical.rsms.entity.recv.server.RSMSCommandEntity;
 import cn.haier.bio.medical.rsms.RSMSDTEManager;
-import cn.haier.bio.medical.rsms.entity.send.client.RSMSCommandResponseEntity;
 import cn.haier.bio.medical.rsms.entity.send.client.RSMSOperationCollectionEntity;
-import cn.haier.bio.medical.rsms.tools.RSMSTools;
 import cn.qd.peiwen.pwlogger.PWLogger;
 import cn.qd.peiwen.pwtools.ByteUtils;
 import cn.qd.peiwen.pwtools.EmptyUtils;
 import cn.qd.peiwen.serialport.PWSerialPort;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 
 
 public class MainActivity extends AppCompatActivity implements IRSMSDTEListener, ILTBListener {

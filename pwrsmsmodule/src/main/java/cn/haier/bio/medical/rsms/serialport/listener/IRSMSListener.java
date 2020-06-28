@@ -13,12 +13,12 @@ import cn.haier.bio.medical.rsms.entity.recv.server.RSMSTransmissionEntity;
 
 public interface IRSMSListener {
     void onRSMSConnected();
-    void onRSMSException();
+    void onRSMSPrint(String message);
+    void onRSMSException(Throwable throwable);
     void onRSMSStatusReceived(RSMSQueryStatusResponseEntity status) throws IOException;
     void onRSMSNetworkReceived(RSMSNetworkResponseEntity network) throws IOException;
     void onRSMSModulesReceived(RSMSQueryModulesResponseEntity modules) throws IOException;
 
-    void onRSMSUnknownReceived() throws IOException;
     void onRSMSDataCollectionReceived(RSMSRecvBaseEntity entity) throws IOException;
     void onRSMSTransmissionReceived(RSMSTransmissionEntity entity) throws IOException;
     void onRSMSRecoveryReceived(RSMSResponseEntity response) throws IOException;

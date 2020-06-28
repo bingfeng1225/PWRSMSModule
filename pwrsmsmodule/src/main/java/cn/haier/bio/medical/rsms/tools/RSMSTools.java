@@ -13,8 +13,6 @@ import cn.haier.bio.medical.rsms.entity.recv.server.RSMSDateTimeEntity;
 import cn.haier.bio.medical.rsms.entity.recv.server.RSMSTransmissionEntity;
 import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
 import cn.qd.peiwen.pwlogger.PWLogger;
-import cn.qd.peiwen.pwtools.ByteUtils;
-import cn.qd.peiwen.pwtools.EmptyUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
@@ -79,14 +77,14 @@ public class RSMSTools {
 
     public static byte[] generateMacAddress() {
         byte[] mac = getMachineHardwareAddress();
-        if (EmptyUtils.isEmpty(mac) || mac.length != 6) {
+        if (mac == null || mac.length != 6) {
             return DEFAULT_MAC;
         }
         return mac;
     }
 
     public static String generateCode(String code) {
-        if (EmptyUtils.isEmpty(code) || !code.startsWith("BE") || code.getBytes().length != 20) {
+        if (code == null || !code.startsWith("BE") || code.getBytes().length != 20) {
             return new String(DEFAULT_BE_CODE);
         }
         return code;
@@ -95,7 +93,7 @@ public class RSMSTools {
     public static byte[] packageString(String src) {
         ByteBuf buffer = Unpooled.buffer(22);
         buffer.writeByte('\"');
-        if (EmptyUtils.isNotEmpty(src)) {
+        if (null != src && src.length() > 0) {
             byte[] bytes = src.getBytes();
             buffer.writeBytes(bytes, 0, bytes.length);
         }
@@ -151,7 +149,7 @@ public class RSMSTools {
     public static byte[] packageCommand(RSMSSendBaseEntity entity) {
         ByteBuf buffer = Unpooled.buffer(8);
         buffer.writeBytes(HEADER, 0, HEADER.length); //帧头 2位
-        byte[] buf = EmptyUtils.isEmpty(entity) ? new byte[0] : entity.packageSendMessage();
+        byte[] buf = (entity == null) ? new byte[0] : entity.packageSendMessage();
         //数据长度 = type(1) + cmd(1) + device(1) + entity(n) + check(1)
         buffer.writeShort(4 + buf.length); //长度 2位
         buffer.writeShort(entity.getCommandType());   //2位
@@ -324,19 +322,77 @@ public class RSMSTools {
     }
 
     public static String command2String(short command){
-        byte[] bytes = ByteUtils.short2Bytes(command);
-        return ByteUtils.bytes2HexString(bytes,true,",");
+        byte[] bytes = short2Bytes(command);
+        return bytes2HexString(bytes,true,",");
     }
+
+    public static byte[] short2Bytes(short value) {
+        byte bytes[] = new byte[2];
+        bytes[0] = (byte) (0xff & (value >> 8));
+        bytes[1] = (byte) (0xff & value);
+        return bytes;
+    }
+
+    public static String bytes2HexString(byte[] data) {
+        return bytes2HexString(data, false);
+    }
+
+    public static String bytes2HexString(byte[] data, boolean hexFlag) {
+        return bytes2HexString(data, hexFlag, null);
+    }
+
+    public static String bytes2HexString(byte[] data, boolean hexFlag, String separator) {
+        if (data == null) {
+            throw new IllegalArgumentException("The data can not be blank");
+        }
+        return bytes2HexString(data, 0, data.length, hexFlag, separator);
+    }
+
+    public static String bytes2HexString(byte[] data, int offset, int len) {
+        return bytes2HexString(data, offset, len, false);
+    }
+
+    public static String bytes2HexString(byte[] data, int offset, int len, boolean hexFlag) {
+        return bytes2HexString(data, offset, len, hexFlag, null);
+    }
+
+    public static String bytes2HexString(byte[] data, int offset, int len, boolean hexFlag, String separator) {
+        if (data == null) {
+            throw new IllegalArgumentException("The data can not be blank");
+        }
+        if (offset < 0 || offset > data.length - 1) {
+            throw new IllegalArgumentException("The offset index out of bounds");
+        }
+        if (len < 0 || offset + len > data.length) {
+            throw new IllegalArgumentException("The len can not be < 0 or (offset + len) index out of bounds");
+        }
+        String format = "%02X";
+        if (hexFlag) {
+            format = "0x%02X";
+        }
+        StringBuffer buffer = new StringBuffer();
+        for (int i = offset; i < offset + len; i++) {
+            buffer.append(String.format(format, data[i]));
+            if (separator == null) {
+                continue;
+            }
+            if (i != (offset + len - 1)) {
+                buffer.append(separator);
+            }
+        }
+        return buffer.toString();
+    }
+
     //校验和取低8位算法
     public static byte computeL8SumCode(byte[] data) {
-        if (EmptyUtils.isEmpty(data)) {
+        if (data == null) {
             throw new IllegalArgumentException("The data can not be blank");
         }
         return computeL8SumCode(data, 0, data.length);
     }
 
     public static byte computeL8SumCode(byte[] data, int offset, int len) {
-        if (EmptyUtils.isEmpty(data)) {
+        if (data == null) {
             throw new IllegalArgumentException("The data can not be blank");
         }
         if (offset < 0 || offset > data.length - 1) {
@@ -351,6 +407,10 @@ public class RSMSTools {
         }
         return (byte) sum;
     }
+
+
+
+
 
     private static String parseString(ByteBuf buffer) {
         buffer.skipBytes(1); //跳过头\"

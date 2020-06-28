@@ -1,7 +1,6 @@
 package cn.haier.bio.medical.rsms.entity.recv;
 
 import cn.haier.bio.medical.rsms.tools.RSMSTools;
-import cn.qd.peiwen.pwtools.ByteUtils;
 
 public class RSMSQueryModulesResponseEntity extends RSMSRecvBaseEntity {
     private byte[] mcu; //MCU识别码

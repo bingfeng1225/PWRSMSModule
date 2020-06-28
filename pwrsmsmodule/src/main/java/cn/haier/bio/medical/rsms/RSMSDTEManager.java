@@ -26,14 +26,12 @@ import cn.haier.bio.medical.rsms.entity.send.RSMSSendBaseEntity;
 import cn.haier.bio.medical.rsms.entity.send.client.RSMSCollectionEntity;
 import cn.haier.bio.medical.rsms.entity.send.client.RSMSCommandResponseEntity;
 import cn.haier.bio.medical.rsms.entity.send.client.RSMSDateTimeCollectionEntity;
-import cn.haier.bio.medical.rsms.serialport.listener.RSMSSimpleListener;
 import cn.haier.bio.medical.rsms.serialport.RSMSSerialPort;
+import cn.haier.bio.medical.rsms.serialport.listener.IRSMSListener;
 import cn.haier.bio.medical.rsms.tools.RSMSTools;
 import cn.qd.peiwen.pwlogger.PWLogger;
-import cn.qd.peiwen.pwtools.ByteUtils;
-import cn.qd.peiwen.pwtools.EmptyUtils;
 
-public class RSMSDTEManager extends RSMSSimpleListener {
+public class RSMSDTEManager implements IRSMSListener {
     private byte[] mac;
     private String dceMac;
     private long lastTime = 0;
@@ -122,7 +120,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         entity.setFromUser(true);
         entity.setMcu(RSMSTools.DEFAULT_MAC);
         String code = null;
-        if (EmptyUtils.isNotEmpty(listener)) {
+        if (null != this.listener && null != this.listener.get()) {
             code = listener.get().findDeviceCode();
         }
         entity.setCode(RSMSTools.generateCode(code));
@@ -160,7 +158,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         if (state != RSMS_STATE_RUNNING) {
             return false;
         }
-        if (EmptyUtils.isEmpty(this.status)) {
+        if (this.status == null) {
             return false;
         }
         if (((this.status.getStatus() & 0x80) != 0x80)) {
@@ -176,7 +174,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         if (state != RSMS_STATE_RUNNING) {
             return false;
         }
-        if (EmptyUtils.isEmpty(this.status)) {
+        if (this.status == null) {
             return false;
         }
         if (this.lastTime == 0) {
@@ -192,7 +190,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     }
 
     private void createHandler() {
-        if (EmptyUtils.isEmpty(this.thread) && EmptyUtils.isEmpty(this.handler)) {
+        if (this.thread == null && this.handler == null) {
             this.thread = new HandlerThread("RSMSDTEManager");
             this.thread.start();
             this.handler = new RSMSHandler(this.thread.getLooper());
@@ -201,7 +199,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     }
 
     private void destroyHandler() {
-        if (EmptyUtils.isNotEmpty(this.thread)) {
+        if (null != this.thread) {
             this.thread.quitSafely();
             this.thread = null;
             this.handler = null;
@@ -211,7 +209,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     }
 
     private void createSerialPort(String path) {
-        if (EmptyUtils.isEmpty(this.serialPort)) {
+        if (this.serialPort == null) {
             this.serialPort = new RSMSSerialPort();
             this.serialPort.init(path);
             this.serialPort.changeListener(this);
@@ -219,17 +217,17 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     }
 
     private void destroySerialPort() {
-        if (EmptyUtils.isNotEmpty(this.serialPort)) {
+        if (null != this.serialPort) {
             this.serialPort.release();
             this.serialPort = null;
         }
     }
 
     private boolean isInitialized() {
-        if (EmptyUtils.isEmpty(this.handler)) {
+        if (this.handler == null) {
             return false;
         }
-        if (EmptyUtils.isEmpty(this.serialPort)) {
+        if (this.serialPort == null) {
             return false;
         }
         return true;
@@ -282,9 +280,9 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     }
 
     private boolean checkPDAStartupModules(RSMSQueryModulesResponseEntity modules) {
-        if (EmptyUtils.isEmpty(this.dceMac)) {
+        if (this.dceMac == null) {
             //已进入PDA配置模式，还未获取到有效的MAC地址
-            String mac = ByteUtils.bytes2HexString(modules.getMac());
+            String mac = RSMSTools.bytes2HexString(modules.getMac());
             if (mac.equals("FFFFFFFFFFFF")) {
                 PWLogger.d("未获取到模块的MAC地址");
                 return false;
@@ -292,7 +290,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                 this.dceMac = mac;
                 PWLogger.d("已获取到模块的MAC地址：" + this.dceMac);
                 //已进入PDA配置模式，还未获取到有效的MAC地址
-                if (EmptyUtils.isNotEmpty(this.listener)) {
+                if (null != this.listener && null != this.listener.get()) {
                     this.listener.get().onDETMacChanged(this.dceMac);
                 }
                 return false;
@@ -300,12 +298,12 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         } else {
             //已进入PDA配置模式，循环判断是否已经配置新的BE码
             String code = modules.getCode();
-            if (EmptyUtils.isEmpty(code) || "BEFFFFFFFFFFFFFFFFFF".equals(code)) {
+            if (code == null || "BEFFFFFFFFFFFFFFFFFF".equals(code)) {
                 PWLogger.d("模块的BE码未配置");
                 return false;
             } else {
                 PWLogger.d("模块的BE码已经配置完成：" + code);
-                if (EmptyUtils.isNotEmpty(this.listener)) {
+                if (null != this.listener && null != this.listener.get()) {
                     this.listener.get().onDeviceCodeChanged(code);
                 }
                 PWLogger.d("退出配置模式");
@@ -318,7 +316,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     private void checkUNPDAStartupModules(RSMSQueryModulesResponseEntity modules) {
         //未进入配置，判断BE码是否一致
         String code = null;
-        if (EmptyUtils.isNotEmpty(this.listener)) {
+        if (null != this.listener && null != this.listener.get()) {
             code = this.listener.get().findDeviceCode();
         }
         if (modules.getCode().equals(code)) {
@@ -348,7 +346,12 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     }
 
     @Override
-    public void onRSMSException() {
+    public void onRSMSPrint(String message){
+
+    }
+
+    @Override
+    public void onRSMSException(Throwable throwable) {
         this.pda = false;
         this.status = null;
         this.tasks.clear();
@@ -376,7 +379,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         if (!entity.isFromUser()) {
             this.startQueryStatus();
         } else {
-            if (EmptyUtils.isNotEmpty(this.listener)) {
+            if (null != this.listener && null != this.listener.get()) {
                 this.listener.get().onStatusReceived(status);
             }
         }
@@ -385,7 +388,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     @Override
     public void onRSMSNetworkReceived(RSMSNetworkResponseEntity network) throws IOException {
         PWLogger.d("查询联网参数成功");
-        if (EmptyUtils.isNotEmpty(this.listener)) {
+        if (null != this.listener && null != this.listener.get()) {
             this.listener.get().onNetworkReceived(network);
         }
         //任务处理结束，重置taskRunning标志
@@ -404,7 +407,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                 this.checkUNPDAStartupModules(modules);
             }
         } else {
-            if (EmptyUtils.isNotEmpty(this.listener)) {
+            if (null != this.listener && null != this.listener.get()) {
                 this.listener.get().onModulesReceived(modules);
             }
         }
@@ -417,14 +420,14 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         if (response.getConfigModel() == (byte) 0xB0) {
             this.dte = true;
             PWLogger.d("进入串口配置成功");
-            if (EmptyUtils.isNotEmpty(this.listener)) {
+            if (null != this.listener && null != this.listener.get()) {
                 this.listener.get().onDTEConfigEntered();
             }
         } else {
             this.pda = true;
             this.clearCache();
             PWLogger.d("进入PDA配置成功,清空模块缓存数据");
-            if (EmptyUtils.isNotEmpty(this.listener)) {
+            if (null != this.listener && null != this.listener.get()) {
                 this.listener.get().onPDAConfigEntered();
             }
         }
@@ -437,13 +440,13 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         if (this.pda) {
             this.pda = false;
             PWLogger.d("退出PDA配置成功");
-            if (EmptyUtils.isNotEmpty(this.listener)) {
+            if (null != this.listener && null != this.listener.get()) {
                 this.listener.get().onPDAConfigQuited();
             }
         } else if (this.dte) {
             this.dte = false;
             PWLogger.d("退出DTE配置成功");
-            if (EmptyUtils.isNotEmpty(this.listener)) {
+            if (null != this.listener && null != this.listener.get()) {
                 this.listener.get().onDTEConfigQuited();
             }
         }
@@ -473,7 +476,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         if (this.state == RSMS_STATE_STRTUP) {
             this.startQueryModules();
         } else {
-            if (EmptyUtils.isNotEmpty(this.listener)) {
+            if (null != this.listener && null != this.listener.get()) {
                 this.listener.get().onClearCacheSuccessed();
             }
         }
@@ -485,11 +488,16 @@ public class RSMSDTEManager extends RSMSSimpleListener {
     public void onRSMSRecoveryReceived(RSMSResponseEntity response) throws IOException {
         PWLogger.d("恢复出厂设置成功");
         this.quitConfigModel();
-        if (EmptyUtils.isNotEmpty(this.listener)) {
+        if (null != this.listener && null != this.listener.get()) {
             this.listener.get().onRecoverySuccessed();
         }
         //任务处理结束，重置taskRunning标志
         this.commandResponseReceived();
+    }
+
+    @Override
+    public void onRSMSDTEModelConfigReceived(RSMSResponseEntity response) throws IOException {
+
     }
 
     @Override
@@ -499,7 +507,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
         switch (entity.getDataType()) {
             case RSMSTools.COLLECTION_DATE_TYPE:
                 RSMSDateTimeEntity date = (RSMSDateTimeEntity) entity;
-                if (EmptyUtils.isNotEmpty(this.listener)) {
+                if (null != this.listener && null != this.listener.get()) {
                     this.startQueryDateTime(600);
                     this.listener.get().onDateTimeChanged(date.getTimestamp());
                 }
@@ -510,7 +518,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                 int controlCommand = command.getCommand();
                 int protocolVersion = command.getProtocolVersion();
                 PWLogger.d("接收到控制指令透传信息:{deviceType:" + deviceType + ", protocolVersion:" + protocolVersion + ",controlCommand:" + controlCommand + "}");
-                if (EmptyUtils.isNotEmpty(this.listener)) {
+                if (null != this.listener && null != this.listener.get()) {
                     if (this.listener.get().checkControlCommand(deviceType, protocolVersion, controlCommand)) {
                         this.listener.get().onControlCommandReceived(command);
                     } else {
@@ -525,6 +533,8 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                 break;
         }
     }
+
+
 
     private class RSMSHandler extends Handler {
         public RSMSHandler(Looper looper) {
@@ -550,7 +560,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                         PWLogger.d("串口连接中断，无法处理，跳过....");
                         break;
                     }
-                    if (EmptyUtils.isEmpty(tasks)) {
+                    if (tasks == null || tasks.isEmpty()) {
                         PWLogger.d("队列为空，无需处理, 跳过....");
                         break;
                     }
@@ -568,7 +578,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                 case RSMS_FINISH_TASK_MSG:
                     PWLogger.d("任务处理结束:" + RSMSTools.command2String(sendBase.getCommandType()));
                     taskRuning = false;
-                    if (EmptyUtils.isNotEmpty(tasks)) {
+                    if (null != tasks && !tasks.isEmpty()) {
                         tasks.remove(0);
                     }
                     sendEmptyMessage(RSMS_PROCESS_TASK_MSG);
@@ -579,7 +589,7 @@ public class RSMSDTEManager extends RSMSSimpleListener {
                         break;
                     }
                     String code = null;
-                    if (EmptyUtils.isNotEmpty(listener)) {
+                    if (null != listener && null != listener.get()) {
                         code = listener.get().findDeviceCode();
                     }
                     RSMSQueryStatusEntity status = new RSMSQueryStatusEntity();

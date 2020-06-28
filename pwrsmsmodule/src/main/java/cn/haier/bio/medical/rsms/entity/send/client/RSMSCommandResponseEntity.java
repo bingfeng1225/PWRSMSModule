@@ -2,7 +2,6 @@ package cn.haier.bio.medical.rsms.entity.send.client;
 
 import cn.haier.bio.medical.rsms.entity.recv.server.RSMSCommandEntity;
 import cn.haier.bio.medical.rsms.tools.RSMSTools;
-import cn.qd.peiwen.pwtools.EmptyUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
@@ -45,7 +44,7 @@ public class RSMSCommandResponseEntity extends RSMSCollectionEntity {
 
         //指令处理结果中数据段封装
         byte[] message = this.packageCollectionMessage();
-        if (EmptyUtils.isNotEmpty(message)) {
+        if (null != message && message.length > 0) {
             buffer.writeBytes(message, 0, message.length);
         }
 
