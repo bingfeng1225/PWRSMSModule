@@ -323,6 +323,9 @@ public class RSMSDTEManager implements IRSMSListener {
             this.startQueryStatus();
             this.state = RSMS_STATE_RUNNING;
             this.onRSMSPrint("RSMSDTEManager 本地BE码与模块参数一致，进入正常运行模式");
+            if (null != this.listener && null != this.listener.get()) {
+                this.listener.get().onDTEReady();
+            }
         } else {
             //不一致：进入PDA配置模式
             this.dceMac = null;

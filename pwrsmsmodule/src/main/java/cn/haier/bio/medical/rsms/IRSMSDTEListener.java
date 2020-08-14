@@ -7,6 +7,7 @@ import cn.haier.bio.medical.rsms.entity.recv.server.RSMSCommandEntity;
 import cn.haier.bio.medical.rsms.entity.recv.server.RSMSTransmissionEntity;
 
 public interface IRSMSDTEListener {
+    void onDTEReady();
     String findDeviceCode();
     void onPDAConfigQuited();
     void onDTEConfigQuited();
