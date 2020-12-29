@@ -157,9 +157,9 @@ public class RSMSSerialPort implements PWSerialPortListener {
     }
 
     @Override
-    public void onByteReceived(PWSerialPortHelper helper, byte[] buffer, int length) throws IOException {
+    public boolean onByteReceived(PWSerialPortHelper helper, byte[] buffer, int length) throws IOException {
         if (!this.isInitialized() || !helper.equals(this.helper)) {
-            return;
+            return false;
         }
         this.buffer.writeBytes(buffer, 0, length);
         while (this.buffer.readableBytes() > 4) {
@@ -306,5 +306,6 @@ public class RSMSSerialPort implements PWSerialPortListener {
                     break;
             }
         }
+        return true;
     }
 }

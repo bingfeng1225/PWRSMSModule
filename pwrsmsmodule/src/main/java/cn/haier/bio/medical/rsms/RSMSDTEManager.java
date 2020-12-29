@@ -540,8 +540,6 @@ public class RSMSDTEManager implements IRSMSListener {
         }
     }
 
-
-
     private class RSMSHandler extends Handler {
         public RSMSHandler(Looper looper) {
             super(looper);
