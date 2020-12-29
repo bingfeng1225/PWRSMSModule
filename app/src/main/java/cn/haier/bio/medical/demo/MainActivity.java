@@ -13,10 +13,7 @@ import java.util.Date;
 import androidx.appcompat.app.AppCompatActivity;
 import cn.haier.bio.medical.demo.control.CommandTools;
 import cn.haier.bio.medical.demo.control.recv.TemptureCommandEntity;
-import cn.haier.bio.medical.demo.control.send.LTBCollectionEntity;
 import cn.haier.bio.medical.demo.control.send.TemptureResonseEntity;
-import cn.haier.bio.medical.ltb.ILTBListener;
-import cn.haier.bio.medical.ltb.entity.LTBDataEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSNetworkResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryModulesResponseEntity;
 import cn.haier.bio.medical.rsms.entity.recv.RSMSQueryStatusResponseEntity;
@@ -27,12 +24,10 @@ import cn.haier.bio.medical.rsms.entity.send.client.RSMSOperationCollectionEntit
 import cn.qd.peiwen.logger.PWLogger;
 import cn.qd.peiwen.pwtools.ByteUtils;
 import cn.qd.peiwen.pwtools.EmptyUtils;
-import cn.qd.peiwen.serialport.PWSerialPort;
 
 
-public class MainActivity extends AppCompatActivity implements IRSMSDTEListener, ILTBListener {
+public class MainActivity extends AppCompatActivity implements IRSMSDTEListener {
     private String code;
-    private LTBDataEntity entity;
 
     private TextView textView;
     private QRCodeDialog qrCodeDialog;
@@ -51,8 +46,6 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
 
         this.code = this.getSharedPreferences("Demo", 0)
                 .getString("DEV_CODE", null);
-//        RSMSCommandManager.getInstance().init(path,this);
-//        RSMSCommandManager.getInstance().enable();
 
         RSMSDTEManager.getInstance().init(path);
         RSMSDTEManager.getInstance().changeListener(this);
@@ -147,24 +140,6 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
     }
 
     @Override
-    public void onLTBSwitchWriteModel() {
-        if (!"magton".equals(Build.MODEL)) {
-            PWSerialPort.writeFile("/sys/class/gpio/gpio24/value", "0");
-        } else {
-            PWSerialPort.writeFile("/sys/class/misc/sunxi-acc/acc/sochip_acc", "1");
-        }
-    }
-
-    @Override
-    public void onLTBSwitchReadModel() {
-        if (!"magton".equals(Build.MODEL)) {
-            PWSerialPort.writeFile("/sys/class/gpio/gpio24/value", "1");
-        } else {
-            PWSerialPort.writeFile("/sys/class/misc/sunxi-acc/acc/sochip_acc", "0");
-        }
-    }
-
-    @Override
     public void onPDAConfigEntered() {
         runOnUiThread(new Runnable() {
             @Override
@@ -189,6 +164,11 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
         if (EmptyUtils.isNotEmpty(this.qrCodeDialog)) {
             this.qrCodeDialog.changeMac(mac);
         }
+    }
+
+    @Override
+    public void onDTEReady() {
+
     }
 
     @Override
@@ -362,48 +342,5 @@ public class MainActivity extends AppCompatActivity implements IRSMSDTEListener,
             this.qrCodeDialog.dismiss();
             this.qrCodeDialog = null;
         }
-    }
-
-
-    @Override
-    public void onLTBReady() {
-
-    }
-
-    @Override
-    public void onLTBConnected() {
-
-    }
-
-    @Override
-    public void onLTBException() {
-
-    }
-
-    @Override
-    public boolean onLTBSystemChanged(int type) {
-        return false;
-    }
-
-    @Override
-    public byte[] packageLTBResponse(int type) {
-        return new byte[0];
-    }
-
-    @Override
-    public void onLTBStateChanged(LTBDataEntity entity) {
-        LTBDataEntity temp = this.entity;
-        this.entity = entity;
-
-        RSMSDTEManager manager = RSMSDTEManager.getInstance();
-        boolean ready = manager.isReady();
-        boolean overtime = manager.isArrivalTime();
-        boolean changed = (!entity.isStatusEquals(temp) || !entity.isAlarmsEquals(temp));
-        if (ready && (overtime || changed)) {
-            LTBCollectionEntity collection = new LTBCollectionEntity();
-            collection.setEntity(entity);
-            manager.collectionDeviceData(collection);
-        }
-        this.entity = entity;
     }
 }
